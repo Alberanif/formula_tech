@@ -1,0 +1,2323 @@
+PRD COMPLETO — FÓRMULA TECH
+Plataforma educacional de escuderias, engenharia, estratégia e corrida multiplayer
+Público-alvo: adolescentes de 15 a 17 anos
+Versão do documento: 1.0 (especificação para implementação)
+Data: 22/11/2026
+Formato do produto: aplicação web HTML/CSS/JavaScript, publicada na Vercel, com backend e sincronização multiplayer
+Idioma: Português do Brasil (pt-BR)
+
+======================================================================
+0. FINALIDADE E REGRA DE LEITURA DESTE DOCUMENTO
+======================================================================
+
+Este PRD descreve o produto COMPLETO a ser implementado, do ponto de vista pedagógico, funcional, visual, econômico, lógico, competitivo, técnico e operacional. Ele foi pensado para orientar o desenvolvimento de ponta a ponta, inclusive por um agente de programação, sem exigir novas decisões sobre os aspectos centrais da experiência.
+
+Status das decisões:
+- [DECISÃO CONSOLIDADA]: estabelecida no planejamento anterior ou confirmada pelo solicitante.
+- [DECISÃO DE ESPECIFICAÇÃO]: detalhamento proposto neste PRD para eliminar ambiguidades de implementação; não é uma funcionalidade já desenvolvida ou testada.
+- [EVOLUÇÃO FUTURA]: não faz parte do escopo obrigatório da primeira versão.
+
+REGRAS INEGOCIÁVEIS:
+1. O jogo deve ensinar lógica condicional, pensamento estratégico, gestão de recursos, planejamento, análise de dados, experimentação e avaliação de escolhas.
+2. A diversão e a competição não podem destruir o objetivo pedagógico. Um carro caro não vence automaticamente; QTEs não anulam o planejamento.
+3. Cada aluno cria uma escuderia e um carro próprios.
+4. O orçamento inicial é igual para todos e limitado.
+5. Mecânicos contratados controlam quais peças podem ser instaladas.
+6. Pilotos e peças modificam as características e a eficiência do carro.
+7. A construção causa despesas e o jogo possui custos operacionais/variáveis.
+8. Os jogadores conseguem testar, ler logs, modificar, repetir e comparar resultados.
+9. As corridas são multiplayer online, em salas privadas restritas aos alunos e sob supervisão do professor.
+10. O aluno não dirige manualmente durante toda a corrida: o carro compete conforme sua construção; ações rápidas são exigidas apenas em QTEs para oportunidades de ultrapassagem.
+11. Toda compra, cálculo oficial, desbloqueio, resultado e QTE deve ser validado em backend confiável.
+12. O professor determina o ritmo das etapas da atividade.
+13. Interface visualmente envolvente, mas simples, legível, responsiva e sem excesso de controles por tela.
+14. A aplicação deve ser funcional, testável e publicável na Vercel; não entregar apenas uma simulação decorativa ou protótipo sem regras.
+
+======================================================================
+1. VISÃO DO PRODUTO E PROPOSTA DE VALOR
+======================================================================
+
+NOME: Fórmula Tech.
+SLOGAN: “Sua equipe. Suas decisões. Seu resultado.”
+
+PREMISSA:
+Cada aluno assume o papel de dirigente de uma escuderia de corrida. Todos recebem 1.200 créditos e precisam contratar piloto e mecânicos, projetar seu carro, escolher componentes, comprar suprimentos, estimar custos e preparar a equipe para uma corrida contra os colegas. Antes da disputa, utilizam um Centro de Testes com resultados quantitativos e logs para identificar gargalos e melhorar o projeto. A corrida reúne decisões estratégicas, performance simulada por setores e Quick Time Events (QTEs) de reação para ultrapassagens.
+
+DIFERENCIAL:
+O produto não é “compre o item mais caro e clique mais rápido”. É um laboratório de tomada de decisão com competição. O aluno faz escolhas com recursos limitados, considera restrições técnicas e financeiras, observa os efeitos, avalia hipóteses e lida com trade-offs.
+
+CONTEXTO PEDAGÓGICO 15–17 ANOS:
+Elevar a complexidade conceitual em relação a crianças mais novas, sem perder a linguagem visual e a fluidez do jogo. Incluir:
+- Condições compostas (E/OU), pré-requisitos, validações e consequências;
+- Custo de oportunidade e restrição orçamentária;
+- Custos fixos versus custos operacionais/variáveis;
+- Valor marginal e custo-benefício de uma melhoria;
+- Risco, confiabilidade, eficiência e impacto de decisões de longo prazo;
+- Testes controlados: uma variável de cada vez;
+- Interpretação de métricas, logs e análise de desempenho por setor;
+- Raciocínio baseado em evidências, não em intuição isolada;
+- Priorização de intervenções e justificativa de decisões.
+
+OBJETIVO DO PRODUTO:
+Oferecer uma experiência aplicável em uma aula de aproximadamente 60 minutos, com modo estendido para 75–90 minutos, em turmas de até 10 alunos simultâneos como referência inicial (arquitetura projetada para até 20 participantes em uma sala e baterias separadas).
+
+OBJETIVO PEDAGÓGICO PRINCIPAL:
+Ao fim da atividade, o aluno deve saber explicar uma decisão de engenharia/gestão usando “Se [condição], então [consequência]”, identificar um problema em um relatório, escolher uma mudança justificada e avaliar os resultados do novo teste.
+
+OBJETIVOS SECUNDÁRIOS:
+- Competir de maneira justa, com regras transparentes;
+- Reconhecer que melhor desempenho depende do contexto da pista;
+- Experimentar consequências de investir demais ou de economizar excessivamente;
+- Observar que velocidade máxima não equivale necessariamente a menor tempo de volta;
+- Reconhecer o papel da análise quantitativa na resolução de problemas reais.
+
+NÃO OBJETIVOS (V1):
+- Não é um simulador físico de Fórmula 1 com dinâmica realista de pneus e telemetria profissional;
+- Não exige volante, gamepad ou controle de direção contínuo;
+- Não usa IA generativa para decidir resultados ou construir logs;
+- Não precisa de chat público, rede social, marketplace entre jogadores ou pagamento real;
+- Não envolve moeda real, prêmios financeiros nem apostas;
+- Não exige cadastro com dados pessoais de crianças;
+- Não exige mundo 3D, gráficos pesados, downloads ou instalação local;
+- Não exige conexão LAN física: basta que os colegas autorizados entrem na mesma sala privada pela internet.
+
+======================================================================
+2. PERSONAS, PAPÉIS E PERMISSÕES
+======================================================================
+
+PERSONA A — ALUNO / DONO DA ESCUDERIA:
+- Idade: 15–17 anos.
+- Usa computador ou notebook escolar; teclado e mouse disponíveis.
+- Entra por código privado e escolhe apelido/nome fictício da escuderia.
+- Não precisa saber programar nem criar conta com e-mail.
+- Busca competir, personalizar, testar e compreender resultados.
+- Possui uma equipe por sala, com possibilidade de reconectar ao mesmo time.
+
+PERSONA B — PROFESSOR / ADMINISTRADOR:
+- Cria e gerencia uma sala.
+- Configura modalidade, circuito, tamanho das baterias, timers e participantes.
+- Controla etapas, mercado, testes, travamento dos carros e início das corridas.
+- Observa progresso, relatórios de decisões, resultados e indicadores pedagógicos.
+- Pode projetar a corrida, pausar, resolver problemas e encerrar a aula.
+
+PERSONA C — MODO PROJEÇÃO / ESPECTADOR:
+- Exibe pista, classificação, equipes e eventos em uma tela grande.
+- Não pode executar compras, alterar equipes, responder QTEs ou acessar dados de outros grupos.
+- Acesso gerado ou autorizado pelo professor.
+
+PERMISSÕES:
+- Aluno: ler dados públicos da própria sala; ler/escrever apenas seu inventário, escolhas e respostas de QTE nos estados permitidos; consultar resultados de corridas compartilhados.
+- Professor: administrar apenas salas criadas por sua conta; abrir/fechar etapas, escolher circuito, iniciar corrida, expulsar participante, corrigir incidentes, exportar relatórios.
+- Projeção: leitura limitada aos dados públicos e status autorizado pelo professor.
+- Sistema: executar transações financeiras, validação de regras, simulação, cálculo de QTE, criação dos registros oficiais e transições de estado.
+
+======================================================================
+3. CICLO COMPLETO DE UMA SESSÃO
+======================================================================
+
+ESTADOS DA SALA:
+CREATED -> LOBBY -> TEAM_BUILD -> TESTING -> LOCK_IN -> QUALIFYING -> FINAL -> RESULTS -> CLOSED.
+
+ESTADO EXTRA: PAUSED (com preservação do estado anterior e motivos registrados).
+
+JORNADA PRINCIPAL:
+1. Professor cria sala e escolhe circuito e regras (antes de aceitar inscrições).
+2. Jogo gera código alfanumérico curto, aleatório, não sequencial e com validade.
+3. Alunos entram por código e escolhem escuderia/apelido e cores.
+4. Professor inicia fase de construção.
+5. Aluno contrata 1 piloto e 1 mecânico principal; auxiliar é opcional.
+6. Aluno instala obrigatoriamente 1 peça por categoria do veículo (6 categorias).
+7. Aluno consulta métricas, custos e requisitos; pode desfazer escolhas antes da trava.
+8. Aluno gerencia suprimentos e reserva operacional de acordo com a configuração.
+9. Professor abre Centro de Testes.
+10. Aluno faz teste 1, analisa logs e registra hipótese de melhoria.
+11. Aluno muda uma ou mais escolhas, sendo incentivado a alterar apenas uma variável para comparabilidade.
+12. Aluno faz teste 2 e registra análise “melhorou / melhorou parcialmente / não melhorou” com justificativa.
+13. Sistema exibe o custo de oportunidade e a evolução medida.
+14. Aluno marca “Pronto para correr” após cumprir desafio pedagógico e requisitos operacionais.
+15. Professor finaliza fase de preparação e gera as baterias.
+16. Carros são travados em configurações oficiais imutáveis por corrida.
+17. Professor inicia bateria; contagem sincronizada de 3 segundos.
+18. Corrida animada acontece automaticamente, com possíveis QTEs válidos entre carros próximos.
+19. Resultado oficial é calculado no servidor, persistido e exibido a todos.
+20. Se aplicável, ocorre a final com os classificados.
+21. Professor mostra resultados e prêmios de aprendizagem.
+22. Alunos registram reflexão final e professor encerra/exporta.
+
+REGRAS DE PROGRESSÃO:
+- O aluno não consegue iniciar uma corrida individualmente fora do fluxo da sala.
+- O professor pode prolongar fases; timers encerram orientação visual, mas não pulam etapas automaticamente por surpresa.
+- Em LOCK_IN, o professor vê quem está pronto e o motivo de não prontidão dos demais.
+- Só pode liberar a corrida com equipes válidas; ausentes podem ser movidos a espectadores.
+- Cada etapa deve permitir retomada após atualização de página ou queda de conexão.
+- Se o professor pausar, a corrida interrompe seu relógio lógico; QTEs em andamento devem ser cancelados sem pontuação ou reiniciados de forma sincronizada.
+
+MODALIDADES:
+- Modo padrão (60 min): 2 testes gratuitos, até 10 alunos, qualificatórias curtas e uma final.
+- Modo estendido (75–90 min): mais tempo para análise, testes pagos, comparação e discussão de estratégia.
+- Modo demonstração: equipe fictícia do professor, sem competir por classificação oficial.
+
+======================================================================
+4. ECONOMIA E REGRAS FINANCEIRAS
+======================================================================
+
+MOEDA: créditos fictícios (Cr).
+SALDO INICIAL: 1.200 Cr por escuderia.
+TODAS AS EQUIPES: mesmas condições iniciais.
+TRANSFERÊNCIAS ENTRE ALUNOS: proibidas (V1).
+GERAÇÃO ADICIONAL DE CRÉDITOS: inexistente durante uma sessão (V1).
+MONEY SINKS: peças, profissionais, suprimentos, testes adicionais.
+SALDO MÍNIMO: 0. Saldo negativo nunca permitido.
+
+CUSTOS FIXOS:
+- Contratação do piloto e mecânico(s).
+- Aquisição/instalação de 1 componente em cada categoria.
+
+CUSTOS VARIÁVEIS:
+- Combustível por corrida (varia conforme motor/eficiência).
+- Pneus por corrida (varia conforme nível do pneu).
+- Kit de reparos opcional (reduz efeito de desgaste).
+- Testes acima da quantidade gratuita.
+- Variações de preço do mercado entre fases.
+
+CATÁLOGO DE PILOTOS:
+ID              NOME             PREÇO      BÔNUS DE ATRIBUTOS
+PILOT_1         Iniciante        100 Cr     Nenhum
+PILOT_2         Experiente       170 Cr     Controle +3, Estabilidade +2, Confiabilidade +3
+PILOT_3         Profissional     250 Cr     Controle +6, Estabilidade +4, Confiabilidade +5
+
+O piloto modifica suavemente o desempenho passivo do veículo, mas NÃO altera o tempo de resposta do estudante em QTE nem compra uma ultrapassagem. Pilotos mais caros não conferem vitória garantida.
+
+CATÁLOGO DE MECÂNICOS PRINCIPAIS:
+ID              NOME             PREÇO      NÍVEL TÉCNICO
+MECH_1          Aprendiz         100 Cr     1
+MECH_2          Experiente       170 Cr     2
+MECH_3          Especialista     260 Cr     3
+
+REGRAS:
+- É obrigatório contratar exatamente 1 mecânico principal.
+- Só há permissão para instalar peça cuja exigência técnica seja menor ou igual ao nível do mecânico principal atual.
+- Se trocar para um mecânico inferior, qualquer peça incompatível precisa ser substituída antes de confirmar a operação; a transação deve ser atômica ou negada com explicação.
+- Mecânico principal não altera sozinho atributos, exceto quando explicitamente implementado como regra futura. Sua função central é desbloquear tecnologias.
+
+MECÂNICO AUXILIAR:
+ID AUX_1 | Mecânico auxiliar | 80 Cr | Opcional (0 ou 1)
+- Bônus de confiabilidade +5.
+- Redução de 30% no preço efetivo de consumo de kit de reparos, aplicada na COMPRA, com arredondamento para cima.
+- Não muda o nível técnico e não desbloqueia peças.
+- Preço-base do kit com auxiliar: ceil(20 x 0,70) = 14 Cr, antes de variação de mercado (ver regra abaixo).
+
+REEMBOLSOS E TROCAS ANTES DA TRAVA:
+- Profissional, peça ou suprimento pode ser trocado/devolvido antes de LOCK_IN, com reembolso de 100% do valor ORIGINAL efetivamente pago.
+- A troca custa a diferença real entre o novo item e o crédito devolvido; não pagar duas vezes para trocar, pois isso frustraria a aprendizagem.
+- O valor de devolução NÃO acompanha valorização ou desvalorização de mercado: vender e recomprar não permite arbitragem.
+- Taxas de testes concluídos NÃO são devolvidas.
+- Todas as operações são atômicas, consistentes e registradas em livro-caixa.
+- Durante corrida ou depois de encerrada a configuração, não são permitidas alterações de carro.
+- Entre qualificatória e final, por padrão, NÃO há nova fase de compras ou trocas; a mesma configuração concorre nas duas fases.
+
+REGRA DO AUXILIAR E KIT:
+Primeiro calcular preço global do kit na fase de mercado; depois aplicar desconto 30% e arredondar para cima. Ex.: kit em 24 Cr -> com auxiliar ceil(24 x 0,70)=17 Cr.
+
+COMPRAS NO MERCADO:
+- Combustível: preço-base 15 Cr por unidade.
+- Kit de pneus: preço-base 25 Cr por unidade.
+- Kit de reparos: preço-base 20 Cr por unidade (opcional).
+- Limite por equipe: no máximo 8 unidades de cada suprimento, para evitar estoque exagerado ou exploração.
+- Cada compra registra o preço de aquisição individual (lotes), permitindo reembolso justo.
+- Inventário exibido em unidades e em cobertura estimada de corridas.
+
+CONSUMO POR CORRIDA:
+- Combustível: 1 unidade para Motor Econômico ou Equilibrado, 2 unidades para Motor Turbo; acrescentar +1 se eficiência final do carro for inferior a 35.
+- Pneus: 1 kit para pneu Convencional ou Esportivo, 2 kits para pneu de Competição.
+- Reparos: o aluno pode atribuir 0 ou 1 kit à corrida, antes de LOCK_IN. Se utilizado, reduz em 40% as penalidades determinísticas de desgaste daquela corrida (ver motor de corrida).
+- Quantidades consumidas são debitadas uma vez por corrida efetivamente iniciada. Não debitar novamente após reconexão/refresh.
+- Qualificatória e final são duas corridas distintas; por padrão, os suprimentos básicos da FINAL serão fornecidos automaticamente pelo evento, sem despesa para os classificados, conforme planejamento anterior. Kits de reparo opcionais na final serão gratuitos para todos os finalistas ou indisponíveis para todos; DECISÃO: indisponíveis na final, para manter paridade.
+- Logo, o aluno precisa provisionar inicialmente apenas a bateria classificatória. Na final, a organização fornece combustível/pneus nas quantidades exigidas pela configuração, sem alterar performance do carro.
+- Se uma corrida for cancelada antes da largada efetiva, suprimentos reservados devem ser devolvidos.
+
+DINÂMICA DO MERCADO:
+- Mercado comum a toda sala: valores NÃO são diferentes por aluno.
+- Fase M0 (início): preços-base, sem variação.
+- Fase M1 (primeiro anúncio do professor): evento programado +20% no combustível, -20% no pneu, sem alteração em reparos.
+- Fase M2 (segundo anúncio, se houver tempo): evento -20% no combustível, +20% no pneu, +20% em reparos.
+- O professor pode escolher evento global de lista pré-aprovada, mas não alterar preço de uma única equipe.
+- O professor aciona os eventos em momentos comunicados no painel; nunca mudar durante confirmação de transação de forma não determinística.
+- Arredondamento: preço_global = round_half_up(preço_base x multiplicador), em créditos inteiros.
+- Limite em M1/M2 de +/-20% do preço-base para cada suprimento.
+- Exemplos: combustível 15 -> 18 em M1 -> 12 em M2; pneu 25 -> 20 em M1 -> 30 em M2; reparo 20 -> 20 em M1 -> 24 em M2.
+- PREÇO DO CARRINHO: o servidor devolve cotação com validade curta; na confirmação, revalida o preço e apresenta mudança se a fase global mudou.
+- No modo padrão de 60 min, M0 e M1 são obrigatórios; M2 é opcional e depende do tempo restante.
+- Alunos podem comprar antecipadamente ou esperar, assumindo risco de alterações.
+
+CUSTO VARIÁVEL DO CARRO:
+A interface deve exibir:
+(a) custo fixo total já investido,
+(b) saldo disponível,
+(c) custo operacional mínimo da próxima corrida no preço atual,
+(d) unidades já em estoque,
+(e) custo adicional para completar suprimentos,
+(f) margem financeira restante após a preparação.
+
+VALIDAÇÃO DE PARTICIPAÇÃO:
+Não confirmar “Pronto para correr” se faltar piloto, mecânico, uma das 6 peças, suprimentos suficientes, condição pedagógica dos testes ou se houver operação incompleta.
+
+======================================================================
+5. CONSTRUÇÃO DOS CARROS — CATÁLOGO INTEGRAL
+======================================================================
+
+EXIGÊNCIA:
+Cada carro deve possuir exatamente 1 item de cada uma das 6 categorias:
+1. Motor;
+2. Chassi;
+3. Pneus;
+4. Suspensão;
+5. Aerodinâmica;
+6. Freios.
+
+Cada categoria possui 3 opções. Não há caixas-surpresa nem sorteio de partes.
+
+CATÁLOGO (TODOS OS PREÇOS EM CRÉDITOS, NÍVEL TÉCNICO ENTRE PARÊNTESES):
+
+MOTOR
+- MOTOR_ECO | Econômico | 140 Cr | Nível 1.
+  Benefício: consumo baixo, boa confiabilidade; potência moderada.
+- MOTOR_BAL | Equilibrado | 190 Cr | Nível 2.
+  Benefício: aceleração e velocidade equilibradas; consumo contido.
+- MOTOR_TURBO | Turbo | 290 Cr | Nível 3.
+  Benefício: máxima potência, mas pior eficiência, confiabilidade e estabilidade.
+
+CHASSI
+- CHASSIS_REINFORCED | Reforçado | 110 Cr | Nível 1.
+  Benefício: robustez e estabilidade; mais massa, menos aceleração.
+- CHASSIS_BALANCED | Equilibrado | 130 Cr | Nível 1.
+  Benefício: estabilidade e controle sem grande perda de velocidade.
+- CHASSIS_LIGHT | Leve | 170 Cr | Nível 2.
+  Benefício: melhora aceleração; exige compensar perda de estabilidade.
+
+PNEUS
+- TIRE_STANDARD | Convencionais | 60 Cr | Nível 1.
+  Benefício: baixo custo, durabilidade.
+- TIRE_SPORT | Esportivos | 110 Cr | Nível 1.
+  Benefício: melhor aderência com custo moderado.
+- TIRE_RACE | Competição | 190 Cr | Nível 2.
+  Benefício: máxima aderência e controle, maior desgaste e necessidade de 2 kits por corrida.
+
+SUSPENSÃO
+- SUSP_BASIC | Básica | 60 Cr | Nível 1.
+- SUSP_SPORT | Esportiva | 110 Cr | Nível 2.
+- SUSP_PRO | Profissional | 170 Cr | Nível 3.
+
+AERODINÂMICA
+- AERO_LOWDRAG | Baixo arrasto | 50 Cr | Nível 1.
+  Benefício: velocidade em retas, menos aderência aerodinâmica em curvas.
+- AERO_BALANCED | Equilibrada | 100 Cr | Nível 2.
+- AERO_DOWNFORCE | Alta pressão aerodinâmica | 160 Cr | Nível 3.
+  Benefício: curvas rápidas e estabilidade; menor velocidade máxima.
+
+FREIOS
+- BRAKE_BASIC | Básicos | 50 Cr | Nível 1.
+- BRAKE_SPORT | Esportivos | 90 Cr | Nível 2.
+- BRAKE_RACE | Competição | 140 Cr | Nível 3.
+
+IMPORTANTE:
+- Peças devem mostrar antes da compra: preço, nível exigido, impacto em atributos, efeito em custos operacionais, vantagens e riscos.
+- A interface deve explicar por que um item está bloqueado: “Exige mecânico nível 3 — seu mecânico atual é nível 2”.
+- Não permitir compra de peça incompatível mesmo que o aluno tente forçar uma requisição ao servidor.
+- Não há bônus secretos arbitrários; todos os efeitos relevantes de peças devem constar no catálogo e no manual do jogo.
+
+======================================================================
+6. ATRIBUTOS, VETORES DAS PEÇAS E BALANCEAMENTO INICIAL
+======================================================================
+
+ATRIBUTOS PRINCIPAIS (ESCALA 10 A 100):
+V = Velocidade (desempenho nas retas)
+A = Aceleração (retomada e ganho de velocidade)
+C = Controle (curvas e frenagens)
+S = Estabilidade (manutenção da aderência / do equilíbrio)
+R = Confiabilidade (resistência ao desgaste e à perda progressiva de performance)
+E = Eficiência (desempenho energético e consumo de recursos)
+
+BASE INICIAL ANTES DAS PEÇAS:
+[V=35, A=35, C=30, S=30, R=40, E=40]
+
+REGRA:
+ATRIBUTO_FINAL = clamp(ATRIBUTO_BASE + soma_dos_bônus_e_penalidades_das_6_peças + bônus_do_piloto + bônus_do_auxiliar, 10, 100).
+
+Os vetores abaixo são os VALORES INICIAIS OFICIAIS DA V1 para implementação e testes. Se ajustes forem necessários após playtests, alterar a configuração de balanceamento e versioná-la, sem espalhar números pelo código.
+
+FORMATO DO VETOR: [+/- V, +/- A, +/- C, +/- S, +/- R, +/- E]
+
+MOTORES:
+MOTOR_ECO       [+10, +8,   0,   0, +8, +10]
+MOTOR_BAL       [+20, +17,  0,  -2, +2,  +3]
+MOTOR_TURBO     [+36, +28, -5,  -8, -9, -16]
+
+CHASSIS:
+CHASSIS_REINFORCED [-4, -5, +3, +14, +12, -5]
+CHASSIS_BALANCED    [ 0,  0, +8, +11,  +7,  0]
+CHASSIS_LIGHT       [+7,+12, +4, -11,  -4, +3]
+
+PNEUS:
+TIRE_STANDARD   [ 0,  0, +6, +3, +8,  0]
+TIRE_SPORT      [ 0, +2,+17, +8, +1, -2]
+TIRE_RACE       [+1, +4,+27,+10,-12, -7]
+
+SUSPENSÃO:
+SUSP_BASIC      [0, 0, +6, +6, +3, 0]
+SUSP_SPORT      [0, 0,+14,+12, +1, 0]
+SUSP_PRO        [0, 0,+21,+19, -5,-2]
+
+AERODINÂMICA:
+AERO_LOWDRAG    [+9,+3, -3,-5, 0,+4]
+AERO_BALANCED   [+4, 0,+10,+8, 0, 0]
+AERO_DOWNFORCE  [-5,-3,+20,+16,0,-5]
+
+FREIOS:
+BRAKE_BASIC     [0,0, +5, +3, +3,0]
+BRAKE_SPORT     [0,0,+11, +9, +2,0]
+BRAKE_RACE      [0,0,+17,+13, -4,0]
+
+PILOTOS:
+PILOT_1        [0,0,0,0,0,0]
+PILOT_2        [0,0,+3,+2,+3,0]
+PILOT_3        [0,0,+6,+4,+5,0]
+
+MECÂNICO AUXILIAR:
+AUX_1          [0,0,0,0,+5,0]
+
+DETALHAMENTO DE BALANCEAMENTO:
+- Os valores são pesos de um jogo pedagógico, não medições de física real.
+- Combinações podem alcançar o limite de 100; pontos excedentes não geram benefício adicional.
+- Evitar que um atributo isolado determine toda a performance: cada setor usa combinação ponderada.
+- Valor marginal deve cair quando um atributo já está próximo de 100.
+- Configurações muito fortes podem ser muito caras, pouco confiáveis ou consumir mais suprimentos.
+- Comparações devem considerar a mesma pista e condições idênticas.
+- O balanceamento final depende de testes automatizados e playtests: nenhum carro ou conjunto de peças pode dominar todos os circuitos e custos sem trade-offs.
+
+EXEMPLO DE CONFIGURAÇÃO CONSOLIDADA:
+Piloto Experiente 170
+Mecânico Experiente 170
+Motor Equilibrado 190
+Chassi Equilibrado 130
+Pneus Esportivos 110
+Suspensão Básica 60
+Aerodinâmica Baixo Arrasto 50
+Freios Básicos 50
+TOTAL FIXO = 930 Cr
+SALDO ANTES DOS SUPRIMENTOS = 270 Cr
+
+Exemplo de troca: Motor Equilibrado 190 -> Turbo 290 (+100), mas exige também Mecânico Experiente 170 -> Especialista 260 (+90); custo incremental fixo = 190, saldo desce de 270 para 80 antes dos suprimentos. O jogador deve avaliar a viabilidade operacional e o impacto do novo vetor.
+
+======================================================================
+7. CIRCUITOS, PISTAS E CONDIÇÕES DO EXPERIMENTO
+======================================================================
+
+CIRCUITOS DISPONÍVEIS:
+1. CIRCUITO EQUILIBRADO (padrão): setores R, C, M, R, C, M.
+2. CIRCUITO TÉCNICO: setores C, C, C, M, C, C (cinco curvas fechadas e um setor misto).
+3. CIRCUITO ALTA VELOCIDADE: setores R, R, M, R, R, M (quatro retas longas e dois setores mistos).
+
+LEGENDA:
+R = Reta (favorece velocidade e aceleração).
+C = Curva (favorece controle e estabilidade).
+M = Misto (exige equilíbrio geral).
+
+TEMPOS DE REFERÊNCIA POR SETOR, PARA UM CARRO DE PERFORMANCE 50:
+- Reta: 6,0 s.
+- Curva: 8,0 s.
+- Misto: 7,0 s.
+
+CADA VOLTA: 6 setores.
+CORRIDA PADRÃO: 3 voltas.
+TESTE PADRÃO: 1 volta, SEM QTE e SEM condições variáveis.
+
+CONFIGURAÇÃO DO PROFESSOR:
+- O circuito é escolhido ANTES da construção e divulgado aos alunos junto com composição da pista.
+- Todo o grupo usa o mesmo circuito na sessão, inclusive testes, classificatórias e final.
+- Variação de clima, chuva, pista molhada e eventos aleatórios: DESATIVADOS na V1.
+- O perfil de curvas/retas deve ficar visível desde o início; alunos conseguem raciocinar e planejar.
+
+OBJETIVO PEDAGÓGICO:
+O circuito altera os pesos da decisão. O circuito técnico é deliberadamente dominado por curvas fechadas; o de alta velocidade tem quatro retas e dois setores mistos que também incluem curvas leves. Um carro ótimo em alta velocidade pode ser menos eficiente no técnico. O aluno precisa identificar o CONTEXTO do objetivo.
+
+======================================================================
+8. MOTOR DE SIMULAÇÃO — REGRAS OFICIAIS
+======================================================================
+
+PRINCÍPIOS:
+- Implementação determinística, transparente e reproduzível a partir de uma versão de configuração.
+- Mesmo carro + mesmo circuito + mesma configuração de teste => mesmo resultado numérico.
+- Um cronômetro visual não decide classificação; os tempos oficiais são calculados no backend.
+- Não usar Math.random() solto para resultados, falhas ou logs.
+- O comportamento da animação (FPS e velocidade gráfica) não pode alterar os tempos oficiais.
+
+PONTUAÇÃO POR SETOR:
+score_R = 0,45*V + 0,35*A + 0,10*S + 0,10*E
+score_C = 0,48*C + 0,32*S + 0,10*A + 0,10*R
+score_M = 0,25*V + 0,25*A + 0,25*C + 0,15*S + 0,10*R
+
+Todos os scores ficam entre 10 e 100. As fórmulas incorporam ganhos e perdas de peças pelos seus vetores finais. A confiabilidade influencia também desgaste ao longo da prova.
+
+TEMPO DE UM SETOR NA PRIMEIRA VOLTA:
+fator_setor = clamp(1,20 - 0,004*score_setor, 0,82, 1,20)
+tempo_base_setor = segundos_de_referência_do_tipo * fator_setor
+
+EXEMPLOS:
+- score 50 -> fator 1,00 (tempo de referência).
+- score 80 -> fator 0,88 (12% mais rápido).
+- score 30 -> fator 1,08 (8% mais lento).
+
+PENALIDADE POR DESGASTE / CONFIABILIDADE (VOLTAS 2 E 3):
+deficit_R = max(0, 60 - R)
+coef_desgaste = deficit_R / 1000
+indice_volta = 0,1,2 (para voltas 1,2,3)
+penalidade = tempo_base_setor * coef_desgaste * indice_volta
+
+SE houver kit de reparos atribuído e consumido na corrida:
+penalidade = penalidade * 0,60
+
+TEMPO_FINAL_SETOR = tempo_base_setor + penalidade + penalidades_de_QTE_alocadas_ao_setor
+
+REGRA DE CONFIABILIDADE CRÍTICA:
+- Se R < 25, cada volta recebe +1,0 s adicional no último setor misto (ou último setor do circuito, caso não seja misto), chamado “parada corretiva simplificada”.
+- Se houver kit de reparos atribuído, esta penalidade cai para +0,5 s por volta.
+- Essa consequência é determinística e explicada nos logs; NÃO há falhas aleatórias que eliminam a equipe.
+
+CONSUMO:
+- Quantidade de combustível e pneus é determinada pela regra financeira do item 4.
+- O custo de combustível depende de E pela regra de eficiência < 35; a confiança deve ser explicada na interface antes da compra.
+- A última volta não permite nova compra ou pit stop interativo na V1.
+
+TEMPO DA CORRIDA SEM QTE:
+Soma dos 18 setores (6 por volta x 3 voltas), incluindo desgaste e eventual parada corretiva.
+
+CRITÉRIO DE VITÓRIA:
+Menor tempo final OFICIAL da corrida (com efeitos legítimos de QTE). Desempate: menor tempo base sem QTE, depois maior score_M, depois empate oficial compartilhado se a igualdade persistir.
+
+ARREDONDAMENTO:
+- Cálculos internos em números de ponto flutuante de alta precisão ou inteiros em milissegundos bem definidos.
+- Ordenação usando valores precisos/internos, não textos formatados.
+- Exibição de tempo com duas casas decimais (ex.: 125,37 s).
+- Armazenar config_version do motor de simulação em cada teste e corrida.
+
+CONSISTÊNCIA:
+- A engine de corrida, engine de testes e geração de logs devem chamar as mesmas funções de cálculo.
+- Não duplicar fórmulas divergentes no frontend e no backend.
+- Frontend pode calcular uma prévia visual, mas o servidor é fonte oficial.
+- Testes controlados desconsideram QTE e, por padrão, desgaste de voltas posteriores porque simulam UMA volta.
+
+OBSERVAÇÃO DE IMPLEMENTAÇÃO:
+As fórmulas são pontos de partida para a V1. Antes de uso em sala, simular exaustivamente combinações viáveis, comparar diferenças e evitar dominância sistemática; se houver ajuste, atualizar config_version e todos os testes de referência.
+
+======================================================================
+9. CENTRO DE TESTES E DIAGNÓSTICO
+======================================================================
+
+O CENTRO DE TESTES É O NÚCLEO PEDAGÓGICO DO JOGO.
+
+OBRIGATÓRIO:
+- Primeiro teste gratuito.
+- Segundo teste gratuito.
+- Terceiro em diante: 12 Cr por teste, debitados ao iniciar e não reembolsáveis após conclusão.
+- Cada teste executa exatamente 1 volta no circuito oficial da sessão, sem QTE e sem adversários.
+- Condições fixas para comparação: clima estável, mesma pista, mesma regra e versão de simulação.
+- Não consumir combustível/pneus/reparos do inventário durante testes; os custos pagos representam laboratório e bancada.
+- Um teste só pode ser executado após carro completo, piloto e mecânico válidos.
+
+RESULTADO RESUMIDO:
+- Tempo total de volta;
+- Tempo por setor (6 setores);
+- Desempenho agregado em retas, curvas e mistos;
+- 6 atributos finais em barras;
+- Alertas de gargalo;
+- Estimativa de consumo por corrida;
+- Custo fixo total e saldo remanescente;
+- Comparação com o teste anterior (se houver).
+
+RESULTADO DETALHADO:
+- Identificação do teste e data/hora;
+- Configuração exata do veículo no momento do teste (snapshot);
+- Setor, tipo, score, tempo base, referência e diferença;
+- Diagnóstico de perda de tempo relativa ao carro de referência com score 50;
+- Efeito das escolhas de pneus, chassi, freios, motor etc. explicados com regras;
+- Alertas de confiabilidade e eficiência;
+- Gráfico de tempos por setor;
+- Histórico de alterações entre testes;
+- Campo “Minha hipótese” e campo “Minha conclusão”.
+
+DIAGNÓSTICOS NÃO ALEATÓRIOS:
+- Se score_C < 50 e tempo em curvas for alto: “Baixo desempenho em curvas; revise controle e estabilidade.”
+- Se score_R < 50: “Desempenho limitado nas retas; avalie motor, peso e aerodinâmica.”
+- Se score_M < 50: “Falta equilíbrio no setor misto.”
+- Se R < 45: “Risco elevado de desgaste em provas longas.”
+- Se E < 35: “Consumo adicional de combustível: +1 unidade por corrida.”
+- Se pneu de competição instalado: “Maior aderência, porém maior despesa: 2 kits de pneus por corrida.”
+- Se mecânico não atende requisitos de peça desejada: mostrar bloqueio no editor, não no relatório de testes.
+
+RECOMENDAÇÃO DO SISTEMA:
+Pode exibir “Investigue este ponto” baseado no maior déficit relativo ao carro de referência por setor. NÃO indicar necessariamente a peça mais cara. Não usar LLM para gerar diagnósticos nem recomendações na V1.
+
+EXEMPLO DE LOG FICTÍCIO:
+TESTE #01 | CIRCUITO TÉCNICO | Carro: Águia Azul
+[OK] Reta: 6,02 s | boa velocidade em reta.
+[ALERTA] Curva 2: 8,95 s | +0,95 s em relação à referência.
+[CAUSA PROVÁVEL] Controle 42 e Estabilidade 46; investigar pneus/suspensão.
+[AVISO] Confiabilidade 39; previsão de perda de performance em volta longa.
+[CONSUMO] Combustível necessário: 1 unidade; pneus: 1 kit.
+
+ATENÇÃO: valores do exemplo são ilustrativos; no jogo os tempos devem ser calculados realmente pelas fórmulas do item 8, com logs derivados dos resultados numéricos.
+
+COMPARAÇÃO ENTRE TESTES:
+- “Teste anterior” versus “Teste atual”, em tempo total, setor a setor e atributos.
+- Mostrar delta em segundos e percentual.
+- Mostrar o que mudou: peça removida, peça instalada, piloto, auxiliar e custo incremental.
+- Se o aluno alterou mais de uma variável, destacar: “Você modificou 3 itens; fica mais difícil identificar qual mudança causou a diferença.”
+- Se a pista ou versão do motor mudar entre testes (não deve ocorrer normalmente), proibir comparação causal direta.
+
+DESAFIO DO ENGENHEIRO (OBRIGATÓRIO PARA CORRER):
+1. Concluir Teste #01.
+2. Escolher gargalo identificado no relatório.
+3. Registrar hipótese curta (seleção estruturada + texto opcional): “Se eu alterar [X], espero melhorar [Y], porque [Z].”
+4. Fazer ao menos UMA alteração real e identificável no projeto.
+5. Concluir Teste #02.
+6. Selecionar resultado: MELHOROU / PARCIALMENTE / NÃO MELHOROU.
+7. Registrar justificativa baseada em ao menos uma métrica numérica dos relatórios (campo curto de texto; professor pode revisar).
+8. O jogo valida conclusão dos dois testes, alteração identificável e preenchimento da reflexão; não “julga” semanticamente a justificativa via IA.
+
+REGRA DE ACESSIBILIDADE PEDAGÓGICA:
+Se o aluno ficou sem créditos para uma peça nova, pode trocar por outra mais barata com reembolso pré-trava. Uma alteração de componente equivalente ou diferente, inclusive trocar de piloto, também conta para o desafio.
+
+LIMITAÇÃO:
+Não permitir testes fictícios ou logs com números independentes da simulação real.
+
+======================================================================
+10. ANÁLISE FINANCEIRA AVANÇADA — CAMADA 15–17 ANOS
+======================================================================
+
+PAINEL DE DECISÕES (DEVE EXISTIR):
+- Investimento fixo (Cr);
+- Despesa operacional prevista de 1 corrida (Cr);
+- Saldo livre após reservar suprimentos (Cr);
+- Quantidade de testes realizados e custo acumulado;
+- Tempo estimado de volta;
+- Custo incremental da última mudança (Cr);
+- Ganho/perda marginal de desempenho em segundos após último teste;
+- Indicador “segundos ganhos por 100 Cr adicionais”, somente quando custo incremental for positivo.
+
+CÁLCULO DO INDICADOR MARGINAL:
+- delta_tempo = tempo_anterior - tempo_atual (positivo indica melhoria).
+- delta_custo_fixo = custo_fixo_atual - custo_fixo_anterior.
+- Se delta_custo_fixo > 0: eficiência_marginal = delta_tempo / (delta_custo_fixo/100).
+- Se delta_custo_fixo = 0: exibir “Melhoria sem custo fixo adicional” ou “Alteração sem custo adicional”.
+- Se delta_custo_fixo < 0: exibir “Economia de X Cr e variação de Y s”; não dividir por número negativo como se fosse ROI.
+- O indicador NÃO considera impacto de custo variável; mostrar este separadamente para evitar falsa comparação.
+
+AVISOS EDUCATIVOS:
+- “Você gastou mais em potência, mas ficou com menos saldo para operar.”
+- “Seu tempo de volta melhorou, mas o custo por corrida aumentou.”
+- “Trocar uma peça melhorou curvas e piorou retas; compare o total.”
+- “Uma diferença pequena pode não justificar um gasto grande.”
+- “Seu projeto tem alta velocidade, mas baixo índice de confiabilidade para três voltas.”
+
+OPCIONAL NO MODO ESTENDIDO:
+O professor pode ativar um “quadro de análise”, no qual alunos justificam estratégia em 1 ou 2 frases. Não exige escrever textos longos.
+
+======================================================================
+======================================================================
+11. CORRIDA MULTIPLAYER — EXPERIÊNCIA E REGRAS
+======================================================================
+
+DESIGN DA CORRIDA:
+- Visão 2D superior ou perspectiva isométrica leve, estética arcade moderna.
+- Pista renderizada em SVG/Canvas/HTML ou solução visual equivalente, com boa legibilidade.
+- Máximo de 5 carros na mesma bateria como padrão, evitando poluição visual e desorganização em sala.
+- Animação fluida: carros seguindo uma trajetória conhecida por setor; cada carro progride de acordo com tempos oficiais.
+- Painel lateral: posição, nome da equipe, tempo oficial, volta, diferença para líder e status de conexão.
+- Painel superior: nome da pista, volta 1/3 etc., contagem, horário e QTE disponível.
+- Efeitos leves de ultrapassagem, bandeirada e pódio; som opcional e com botão mudo.
+- Nenhuma colisão física com física complexa na V1. Visual de carros próximos sem impedir passagem artificialmente.
+
+LARGADA:
+- Professor seleciona bateria e clica “Iniciar corrida”.
+- Backend valida equipes e monta snapshot imutável da bateria.
+- Todos recebem instante oficial de largada no futuro: start_at = relógio do servidor + 3 segundos (ou margem de sincronização configurada).
+- Contagem 3, 2, 1, JÁ! usa start_at oficial; não depende do carregamento de cada navegador.
+- Quem perder a contagem entra na corrida no tempo oficial correto e recupera estado por snapshot.
+
+MODO DE PILOTAGEM:
+- Carro acelera e contorna a pista automaticamente.
+- Jogador acompanha resultados e intervém apenas nos QTEs autorizados.
+- Atributos do carro determinam seu desempenho-base nos setores.
+- O sistema não permite acelerar por spam de teclado ou modificar velocidade por console de navegador.
+
+ORDEM DA CORRIDA:
+- Posição determinada por progresso no circuito e, quando pertinente, por tempo acumulado/estimado no checkpoint oficial.
+- Para a classificação oficial final, usar tempo total do motor do item 8 + efeitos aplicados de QTE.
+- Em um mesmo trecho visual, a animação pode interpolar posições entre checkpoints; ao receber snapshot autoritativo, corrigir suavemente.
+- No começo, todos largam da mesma referência temporal; posições no grid são apenas cosméticas e não acrescentam desvantagem de tempo na V1.
+
+DESGASTE:
+- Cada volta posterior sofre penalidade calculada pela confiabilidade.
+- Penalidade crítica em R < 25 como especificado.
+- O kit de reparos reduz as penalidades; não realiza ações manuais durante a corrida.
+- Logs pós-corrida detalham desgaste por volta, sem inventar eventos aleatórios.
+
+AVISOS DE PISTA:
+- “Entramos em setor de curvas — controle e estabilidade fazem diferença.”
+- “Começou a reta — velocidade e aceleração pesam mais.”
+- “Seu carro perdeu tempo por baixa confiabilidade.”
+- “Você está próximo de uma oportunidade de ultrapassagem.”
+
+DURAÇÃO ALVO:
+- Uma corrida de 3 voltas dura aproximadamente 2 a 3 minutos de tempo de tela, dependendo de fatores e momentos de QTE.
+- O professor deve conseguir executar 2 baterias de qualificatória e 1 final, com intervalos curtos.
+
+======================================================================
+12. QUICK TIME EVENTS (QTE) — REGRAS OFICIAIS
+======================================================================
+
+DEFINIÇÃO:
+Desafios curtos de reação/precisão/sequência apresentados a DOIS pilotos humanos que estejam em disputa próxima na pista. Servem para decidir uma oportunidade de ultrapassagem sem substituir o desempenho técnico da escuderia.
+
+TIPOS:
+
+QTE 1 — REAÇÃO:
+- Sinal visual inicia em vermelho/espera; depois fica verde e aparece uma tecla.
+- Tecla padrão: ESPAÇO ou alternativa acessível mapeada.
+- Pressionar antes do sinal verde = falsa largada, tentativa inválida.
+- Entre respostas válidas, vence quem chegar primeiro ao backend, considerando tolerância de empate.
+
+QTE 2 — PRECISÃO:
+- Indicador animado atravessa uma barra com zona de acerto definida e sincronizada.
+- Aluno usa ESPAÇO para parar.
+- Só respostas dentro da zona válida concorrem; entre elas, a de menor tempo válido de resposta vence.
+- A faixa visual deve ser larga o suficiente para ser realizável em teclado escolar, e não variar secretamente por equipe.
+- O backend calcula se a barra estaria dentro da área válida pelo tempo oficial de recepção da tecla e pelos parâmetros determinísticos do evento; não confiar em `hit=true` enviado pelo cliente.
+
+QTE 3 — SEQUÊNCIA:
+- Aparece sequência curta de 3 comandos entre A, D e ESPAÇO (ex.: A -> D -> ESPAÇO).
+- O aluno deve digitar corretamente, na ordem.
+- Primeiro a concluir a sequência no servidor vence; um erro encerra a tentativa ou permite 1 correção com penalidade explícita (DECISÃO: erro encerra a tentativa nessa versão para simplificar).
+- A sequência é igual para os dois jogadores do duelo.
+
+DURAÇÃO E DISTRIBUIÇÃO:
+- Quatro checkpoints candidatos de QTE por corrida, aproximadamente em 30%, 50%, 70% e 88% do progresso global.
+- No máximo 4 oportunidades por corrida para cada jogador, sendo o limite efetivo da sessão o número de checkpoints válidos.
+- Cada checkpoint permite no máximo 2 duelos simultâneos para uma bateria de 5 carros; ninguém participa de dois duelos ao mesmo tempo.
+- Os duelos surgem apenas se existirem adversários elegíveis, sem forçar proximidade artificial.
+- Janela de resposta: 2,0 segundos após a liberação oficial da ação.
+- O painel deve mostrar contagem de preparação (ex.: 1 segundo) e depois abrir o desafio.
+- Em checkpoint sem duelo elegível, seguir corrida sem parar.
+
+CONDIÇÕES PARA DISPARO:
+- Duas equipes em posições adjacentes na classificação momentânea.
+- Diferença projetada/registrada no mesmo checkpoint <= 0,60 segundo.
+- Nenhuma dessas equipes está em cooldown dos últimos 2 setores.
+- Ambas possuem aluno conectado OU a equipe desconectada aceita resposta nula (DECISÃO: uma equipe sem conexão não participa; corrida segue só pelo carro).
+- Limite de eventos por corrida ainda não alcançado.
+
+RESULTADO DO QTE:
+- Se o carro que vinha ATRÁS vencer, aplicar -0,70 s ao tempo futuro oficial dele e +0,15 s ao do carro à frente nesse checkpoint (vantagem relativa 0,85 s). Como a janela de elegibilidade é <= 0,60 s, a ultrapassagem tende a ser consumada imediatamente.
+- Se o carro que vinha NA FRENTE vencer, aplicar -0,35 s ao tempo futuro dele e +0,20 s ao do perseguidor, preservando/abrindo distância.
+- Se houver empate, falhas ou ausência de respostas válidas: nenhum bônus nem penalidade (QTE neutro).
+- Em todos os casos, mudanças são aditivas ao tempo oficial; não trocar posições artificialmente sem aplicar consequência numérica.
+- QTEs são desafios recreativos de navegador: é possível reduzir fraude casual com servidor autoritativo, mas não garantir proteção absoluta contra automação sofisticada/macro. O campeonato é educacional, não de alto valor.
+- O carro ultrapassado pode recuperar a posição em setores seguintes devido a melhores atributos.
+- Penalidades ou bônus só podem ser aplicados uma vez por event_id.
+
+EMPATE / JUSTIÇA:
+- Empate se a diferença de timestamps de chegada de respostas válidas ao servidor for <= 50 ms.
+- Não confiar em cronômetros informados diretamente pelo cliente para decidir vencedor.
+- Usar relógio autoritativo do backend para validar abertura/fechamento e ordem de chegada.
+- Reconhecer que rede e latência podem influenciar eventos de milissegundos; usar computadores e conectividade semelhantes, além de tolerância de empate e limite de 4 eventos.
+- Opcional futuro: calibração de RTT para ligações heterogêneas; NÃO compensar de forma insegura ou facilmente manipulável tempos fornecidos pelo navegador.
+
+SEGURANÇA:
+- O servidor valida que o jogador é participante da equipe elegível e que o evento está aberto.
+- Cada participante tem uma única tentativa oficial por event_id (sequência registra progresso controlado; não permite sobrescrever resultado final).
+- Rate limiting; descartar teclas repetidas fora da janela; idempotência por submission_id.
+- Um aluno não pode responder pelo colega enviando outro team_id.
+- Se a aba estiver em segundo plano, mostrar aviso de que manter a página ativa é necessário para os QTEs.
+
+PAUSA DA CORRIDA:
+- Ao abrir um QTE válido, congelar o relógio lógico de corrida de toda bateria pelo tempo do evento + preparação. Isso evita que os demais carros continuem enquanto dois alunos estão respondendo.
+- Progresso e rankings permanecem visíveis durante a pausa.
+- Ao resolver ou expirar, aplicar efeitos oficiais, registrar no histórico e retomar o relógio lógico global.
+
+APRESENTAÇÃO VISUAL:
+- Banner chamativo no alto: “DUELO DE ULTRAPASSAGEM”.
+- Dois nomes/cores de escuderia.
+- Instrução objetiva e grande: “PRESSIONE ESPAÇO QUANDO FICAR VERDE”.
+- Área ampla sem controles concorrentes.
+- Feedback: ACERTOU, FALSA LARGADA, NÃO CONSEGUIU, EMPATE, ULTRAPASSAGEM!
+- Animações curtas, sem flashes estroboscópicos; alternativa de movimento reduzido.
+
+RESULTADOS DE QTE A REGISTRAR:
+- Tipo do desafio; checkpoint; equipes envolvidas; início e encerramento oficiais;
+- Resultado válido/inválido/empate; tempo de resposta observado pelo servidor;
+- Mudança aplicada em segundos; posição antes/depois;
+- Motivo da falha (antecipação, erro de sequência, expiração, desconexão).
+
+======================================================================
+13. TORNEIO, CLASSIFICAÇÃO E PRÊMIOS
+======================================================================
+
+FORMATO PADRÃO PARA 10 ALUNOS:
+- 2 baterias classificatórias de até 5 carros, distribuídas automaticamente de forma equilibrada ou manualmente pelo professor.
+- Todos jogam uma classificatória.
+- Os 2 melhores colocados de cada bateria passam para a final de 4 carros.
+- Para 8 ou menos alunos, professor pode ativar bateria única seguida de final opcional.
+- Se houver mais de 10 até 20 inscritos, dividir em baterias adicionais com no máximo 5 carros; avançam os melhores segundo regra definida pelo professor antes da largada.
+
+CRITÉRIO DE CLASSIFICAÇÃO:
+- Dentro de cada bateria: menor tempo oficial final.
+- Entre baterias, quando houver necessidade de vaga adicional: menor tempo oficial em circuito e regras idênticos, com aviso de que QTEs podem afetar a comparação; preferir critério anunciado previamente, por exemplo, top 2 de cada bateria.
+- Empates oficiais segundo regra do motor, ou baterias extras se o professor tiver tempo (DECISÃO: desempate técnico pelo motor para evitar prolongamento).
+
+FINAL:
+- Mesma configuração de carros já travados.
+- Mesma pista da sessão.
+- Suprimentos obrigatórios da corrida custeados pela organização.
+- Sem mecânico/peças novos entre fases; sem vantagem de orçamento restante na final.
+- QTEs habilitados com mesmas regras.
+
+RESULTADO FINAL:
+- Pódio geral com 1º, 2º e 3º lugares.
+- Ranking completo da sala incluindo posições das baterias.
+- Relatório do tempo final, desempenho por setor, eventos de QTE e desgaste.
+- Comparação opcional entre o carro mais veloz nas retas e o vencedor da prova.
+
+RECONHECIMENTOS PEDAGÓGICOS:
+- Campeão da Pista: vencedor da final.
+- Melhor Estrategista: aluno que justificou escolhas equilibradas e previsão de riscos; atribuição manual do professor, com apoio do painel.
+- Maior Evolução: maior redução percentual de tempo entre os dois primeiros testes concluídos, com alteração real.
+- Melhor Analista: escolhido pelo professor com base na hipótese, uso de métricas e conclusão.
+
+REGRA:
+Premiações pedagógicas não dependem apenas de QTE nem são decididas por textos avaliados automaticamente por uma IA. Professor tem decisão final e pode não atribuir prêmio se não houver evidência.
+
+======================================================================
+14. TELAS DO ALUNO — EXPERIÊNCIA DETALHADA
+======================================================================
+
+ESTILO VISUAL:
+- Tema arcade/engenharia automotiva moderno, fundo escuro, cores de escuderia, tipografia legível.
+- Cartões grandes com hierarquia visual clara, microinterações discretas, ícones reconhecíveis.
+- Não reproduzir interface de simulador profissional com centenas de indicadores.
+- No máximo 1 objetivo primário e 1 CTA (ação principal) por tela.
+- Indicadores financeiros sempre visíveis no cabeçalho nas telas de gestão.
+- Cada compra tem pré-visualização “antes/depois”; botões bloqueados mostram motivo.
+- Linguagem em pt-BR, com termos técnicos acompanhados de explicação curta ao passar o cursor/clicar “?”.
+
+TELA 0 — BOAS-VINDAS:
+- Logomarca Fórmula Tech, slogan e ilustração de carros.
+- Botões “Entrar na sala” e “Acesso do professor”.
+- Link curto “Como funciona” com 4 passos.
+- Não pedir data de nascimento, CPF, nome completo, foto ou e-mail dos alunos.
+
+TELA 1 — ENTRADA / LOBBY:
+- Input do código da sala.
+- Campo nome da escuderia (3 a 20 caracteres) e apelido do piloto humano (opcional, fictício).
+- Seleção de cor do carro entre opções contrastantes e numeração única gerada pelo sistema.
+- Lista de escuderias conectadas, sem dados pessoais.
+- Status “Aguardando o professor”.
+- Ao reconectar, detectar sessão anônima válida e restaurar a equipe.
+- Bloquear nomes abusivos por filtro básico + moderação do professor.
+
+TELA 2 — VISÃO GERAL DO DESAFIO:
+- Circuito selecionado, perfil de setores e explicação dos critérios de vitória.
+- Orçamento 1.200 Cr e objetivo “montar, testar, melhorar, competir”.
+- “Plano da equipe” opcional: escolha do foco estratégico (retas, curvas, equilíbrio, confiabilidade).
+- O foco é um rótulo para reflexão e não dá bônus mágico.
+- Botão “Começar”.
+
+TELA 3 — MINHA EQUIPE:
+- Cards de pilotos e mecânicos com preço, bônus e pré-requisitos.
+- 1 piloto obrigatório, 1 mecânico principal obrigatório, 0/1 auxiliar.
+- Explicação visual sobre nível técnico e peças desbloqueadas.
+- Simulador de custo que mostra saldo após alterações.
+- Botão “Confirmar equipe e ir à garagem”.
+
+TELA 4 — GARAGEM:
+- Carro ilustrado central com cor da equipe e peças equipadas.
+- Seis abas ou cards (motor, chassi, pneus, suspensão, aero, freios).
+- Em cada categoria: três opções, preço, nível exigido, delta de atributos e impacto operacional.
+- Resumo do custo fixo, barras dos 6 atributos e avisos de compatibilidade.
+- Comparação imediata entre item atual e candidato antes da confirmação.
+- Atalho “Voltar à equipe” para trocar mecânico/piloto.
+- Progresso: 0/6 até 6/6 componentes instalados.
+
+TELA 5 — MERCADO E ORÇAMENTO:
+- Saldo, créditos investidos, custo variável esperado, estoque e crédito reservado.
+- Catálogo de 3 suprimentos com preço atualizado, variação e descrição.
+- Quantidade necessária para a primeira corrida calculada automaticamente.
+- Histórico simples de preços (M0/M1/M2), sem gráficos complexos.
+- Quadro de risco: “Você tem combustível para X corrida(s).”
+- CTA para realizar a compra ou avançar para testes.
+
+TELA 6 — CENTRO DE TESTES:
+- Mapa de pista e botão “Executar teste”.
+- Card com número de testes grátis restantes e custo dos próximos.
+- Mini animação (até 5 s, pulável) da volta simulada.
+- Resultados: tempo, barras, setores, alertas e comparação.
+- Abas “Visão geral”, “Logs detalhados”, “Comparar testes”.
+- Histórico de testes listados em ordem cronológica.
+- Campo de hipótese/conclusão do Desafio do Engenheiro.
+- Atalho “Voltar à garagem” com destaque para item a investigar.
+
+TELA 7 — CHECKLIST / PREPARAÇÃO:
+- Equipe válida?
+- 6 peças instaladas?
+- 2 testes e 1 alteração concluídos?
+- Hipótese e conclusão registradas?
+- Estoque suficiente para a bateria classificatória?
+- Saldo não negativo?
+- Cada pendência deve ser clicável para levar à área adequada.
+- Botão “Pronto para correr”.
+- Ao clicar, criar versão snapshot do carro para a corrida; aluno pode cancelar prontidão somente antes de o professor abrir LOCK_IN.
+
+TELA 8 — AGUARDANDO A CORRIDA:
+- Nome da bateria, número da escuderia, circuito, resumo de atributos.
+- Lista dos concorrentes com nomes e cores, SEM acesso a inventários privados não autorizados.
+- “Largada em breve” e contagem sincronizada.
+- A partir de LOCK_IN, avisar que alterações estão bloqueadas.
+
+TELA 9 — CORRIDA:
+- Pista grande e carros em movimento.
+- Ranking e tempos, volta atual, setor, distância para adversários.
+- QTE aparece em primeiro plano apenas para os dois participantes envolvidos; espectadores veem estado do duelo sem teclas de resposta.
+- Abaixo da pista: notificações e histórico curto de ocorrências.
+- Versão de projeção com câmera ampliada e HUD simplificado.
+
+TELA 10 — RESULTADO:
+- Bandeirada, pódio e classificação.
+- Tempo por volta/setor e efeito dos QTEs.
+- Destaque “Qual escolha mais ajudou?” com links para relatório.
+- Se qualificado, informar vaga na final.
+- Se não qualificado, encaminhar para modo espectador sem humilhar o aluno.
+
+TELA 11 — RELATÓRIO FINAL DA ESCUDERIA:
+- Equipe, atributos, custos, configuração, inventário, testes e histórico de mudança.
+- Gráficos de evolução e logs principais.
+- Posição na corrida, QTEs e penalidades.
+- Resumo de como a hipótese foi testada.
+- Reflexão final estruturada: “Qual decisão manteria?” e “O que mudaria?”.
+- Download opcional de resumo em formato imprimível ou CSV (escopo V1: CSV/texto, sem PDF obrigatório).
+
+TELA 12 — REGRAS / TUTORIAL:
+- Acesso permanente pelo ícone “?”.
+- Explicações de orçamento, condições, peças, pontuação por setor, testes e QTEs.
+- Glossário de termos: condicional, custo fixo, variável, confiabilidade, eficiência, log, hipótese, comparação, valor marginal.
+- Modo tutorial guiado com overlays fecháveis na primeira visita; sempre possível reabrir.
+
+======================================================================
+15. PAINEL DO PROFESSOR — ESPECIFICAÇÃO COMPLETA
+======================================================================
+
+ACESSO:
+- Professor autenticado separadamente dos alunos.
+- Sessões privadas, controle por proprietário; não confiar em URL oculta como autorização.
+
+CRIAÇÃO DE SALA:
+Campos:
+- Nome da atividade (ex.: Fórmula Tech — Turma B);
+- Circuito: Equilibrado / Técnico / Alta Velocidade;
+- Limite de participantes (padrão 10, máximo inicial 20);
+- Carros por bateria (padrão 5);
+- Número de voltas (fixo 3 no padrão; campo visível somente em modo avançado de configuração, V1 pode manter 3);
+- Modo: 60 minutos ou Estendido;
+- QTE habilitado (padrão SIM, professor pode desligar por acessibilidade ou falhas técnicas);
+- Controle do mercado (M0/M1/M2) e sua agenda comunicada;
+- Código da sala gerado automaticamente, renovável.
+
+DASHBOARD DA SALA:
+- Lista de escuderias: conectada, completa/incompleta, testes 0/1/2+, hipótese, análise e “pronto”.
+- Resumo de orçamento e suprimentos faltantes por equipe.
+- Alertas pedagógicos: “não realizou comparação”, “carro sem combustível”.
+- Botões de fase: Abrir construção, Abrir testes, Anunciar mercado, Trancar equipes, Iniciar bateria, Iniciar final, Mostrar resultados, Encerrar.
+- Botão PAUSAR/RETOMAR, com confirmação.
+- Linha do tempo de eventos: inscrição, compras, testes, fases, bateria, QTE e encerramento.
+
+CONTROLE DO TORNEIO:
+- Distribuir baterias automaticamente, com opção de ajuste manual ANTES do início da primeira.
+- Definir quantos classificam por bateria.
+- Executar contagem oficial para largada.
+- Projetar corrida em tela cheia com QR/link de projeção protegido.
+- Após classificatórias, confirmar classificados e iniciar final.
+- Repetir bateria anulada por erro técnico; histórico da execução anterior permanece auditável como CANCELADA.
+
+AÇÃO CORRETIVA:
+- Desconectar/expulsar participante indevido.
+- Permitir reconexão com a mesma equipe, mediante sessão autenticada válida.
+- Anular resultado de QTE comprovadamente inválido e recalcular tempos sob ação administrativa auditada; preferir repetição do evento/corrida se houver controvérsia.
+- Reiniciar a sala em sessão de teste (apenas com confirmação dupla).
+- Nunca permitir editar diretamente créditos de apenas um aluno durante competição oficial; exceção técnica deve ser registrada como intervenção e comunicada.
+
+PAINEL PEDAGÓGICO:
+- Tabela com primeiro/segundo teste e variação de tempo.
+- Número de alterações, custo incremental e evidências de hipótese/conclusão.
+- Lista de “maior evolução” calculada.
+- Campos para escolher “Melhor Estrategista” e “Melhor Analista”.
+- Exportar CSV das equipes e relatórios após a aula, sem dados identificáveis além de apelidos fictícios.
+
+MODALIDADE DEMONSTRAÇÃO:
+- Professor pode abrir uma garagem-modelo com orçamento fictício próprio.
+- Pode mostrar logs comparativos de exemplo.
+- Demonstrações não afetam estatísticas nem economia de alunos.
+
+======================================================================
+16. FLUXOS, MENSAGENS E MICROINTERAÇÕES
+======================================================================
+
+FLUXO FELIZ:
+Criar sala -> Entrar -> Contratar -> Montar -> Abastecer -> Testar -> Comparar -> Pronto -> Correr -> Analisar -> Encerrar.
+
+MENSAGENS OBRIGATÓRIAS:
+- Compra válida: “Peça instalada! Seu carro ganhou +X em Controle e perdeu Y em Eficiência.”
+- Compra inválida, orçamento: “Saldo insuficiente: faltam 35 créditos.”
+- Compra inválida, requisito: “Esta peça exige mecânico nível 3. Seu mecânico atual é nível 2.”
+- Troca de mecânico inválida: “Para contratar um mecânico de nível inferior, substitua primeiro as peças que exigem nível mais alto.”
+- Mercado: “Evento de mercado: combustível ficou 20% mais caro para todas as equipes.”
+- Teste: “Teste concluído! Abra os logs e descubra onde seu carro perdeu tempo.”
+- Hipótese pendente: “Registre o que pretende melhorar antes do próximo teste.”
+- Alteração múltipla: “Você mudou vários itens. Tente analisar qual deles causou a diferença.”
+- Bloqueio de prontidão: “Ainda faltam: [lista objetiva e clicável].”
+- QTE: “Espere o sinal verde!”, “Falsa largada!”, “Ultrapassagem concluída!”, “Duelo empatado!”.
+- Reconexão: “Sua escuderia foi recuperada. Sincronizando seu estado com a sala...”
+- Corrida sem QTE: “Nenhum duelo elegível neste trecho; a corrida continua.”
+- Final: “Sua equipe está classificada para a grande final!”
+- Falha temporária: “Não foi possível concluir a ação. Nenhum crédito foi debitado. Tente novamente.”
+
+NAVEGAÇÃO:
+- Uma barra simples de progresso: Equipe -> Garagem -> Mercado -> Testes -> Corrida.
+- Botões Voltar/Avançar sem perda das escolhas salvas.
+- Dados persistem ao atualizar a página.
+- Feedback visual de salvamento, mas sem bloquear a tela por ações rápidas.
+
+TUTORIAIS:
+- Explicar condições e consequências no momento em que aparecer o primeiro bloqueio.
+- Usar exemplos de orçamento real do jogador.
+- Ensinar como ler as barras e logs, evitando leitura longa obrigatória.
+- Ajudas devem ser desativáveis e reabertas por “?”.
+
+======================================================================
+17. UX, ACESSIBILIDADE E DISPOSITIVOS
+======================================================================
+
+PLATAFORMA ALVO:
+- Navegadores atualizados em computadores Windows, macOS e Linux.
+- Tamanho recomendado: 1366x768 ou superior.
+- Mínimo funcional: 1024x768 (sem sobreposição; rolagem permitida nas telas de gestão).
+- Smartphone: pode assistir e acessar informações, mas QTE oficial não é garantido na V1; avisar sobre uso preferencial de teclado, ou permitir botões de toque quando o professor ativar modo touch para TODOS da bateria.
+
+ACESSIBILIDADE:
+- Contraste suficiente entre texto e fundo escuro.
+- Não depender apenas de cores para indicar positivo/negativo ou bloqueado/desbloqueado.
+- Teclado navegável, foco visível e botões com rótulos.
+- Ícones sempre acompanhados de texto em ações críticas.
+- Preferência “reduzir movimento”; animação de corrida e QTEs com intensidade reduzida sem alterar temporização oficial.
+- Legendas para avisos sonoros; áudio mutável por usuário.
+- QTEs não devem depender de distinguir vermelho e verde exclusivamente: usar também texto “AGUARDE / AGORA”.
+- Se o aluno tiver limitação motora, professor pode desligar QTE para toda a bateria ou atribuir modo de igualdade onde todas as oportunidades são neutras; não constranger o aluno.
+- Evitar flashes rápidos, estímulos agressivos e excesso de cronômetros simultâneos.
+
+INTERAÇÃO PRINCIPAL:
+- Botões grandes, textos diretos e animações curtas.
+- Evitar interfaces com 20 tabelas na mesma tela.
+- Dados avançados ficam em expanders/abas, não escondidos completamente.
+- Mostrar motivo de erro próximo à ação.
+- Em QTE, prevenir scroll ao pressionar ESPAÇO e ignorar repetição de tecla disparada pelo navegador.
+
+PERFORMANCE VISUAL:
+- Meta: 60 FPS em computadores escolares medianos na corrida, degradando com graça a 30 FPS sem alterar resultados.
+- Evitar grandes bibliotecas 3D e assets desnecessários.
+- Carros com cores, números e nomes distintos, sem imagens pesadas.
+- Modo projeção otimizado para 16:9.
+
+======================================================================
+18. ARQUITETURA TÉCNICA FINAL DA V1
+======================================================================
+
+DECISÃO DE STACK:
+- Frontend: HTML5 + CSS3 + JavaScript ES Modules, com Vite como ferramenta de build (sem obrigatoriedade de React/Next).
+- Hospedagem frontend: Vercel.
+- Autenticação de alunos: Supabase Auth com sessão anônima e UID único por navegador.
+- Autenticação de professor: Supabase Auth com conta própria de professor; privilégios armazenados e verificados no backend.
+- Banco: Supabase PostgreSQL.
+- Realtime: Supabase Realtime (Broadcast e Presence, canais privados com autorização).
+- Backend autoritativo: Supabase Edge Functions + operações transacionais/RPC no PostgreSQL.
+- Engine comum de simulação: módulo TypeScript/JavaScript puro, testado e reutilizado no backend; para persistência, motor autoritativo roda exclusivamente no backend.
+- Configurações versionadas: catálogo, vetores de atributos, regras da simulação e das pistas, guardados em arquivos versionados + config_version persistida.
+
+POR QUE ESSA STACK:
+- Vercel atende à publicação simples do site.
+- Supabase fornece banco, autenticação, sincronização de presença e mensagens de sala.
+- A autoridade do jogo fica no servidor, com controle de permissão e regras.
+- Não depender de um servidor de WebSocket próprio rodando permanentemente apenas para uma turma de até 10 jogadores.
+
+IMPORTANTE SOBRE “LAN”:
+- Tecnicamente, esta é uma sala online privada (o site está na Vercel e o backend na nuvem); não uma LAN isolada sem internet.
+- O requisito é que apenas participantes da aula tenham acesso à sala.
+- Criar código de acesso aleatório não é suficiente sozinho; validar associação de usuário à sala no backend e restringir canais de realtime com RLS.
+
+COMPONENTES LÓGICOS:
+A. Cliente web — telas, animação, interação, prévias e leitura de estado.
+B. Serviço de sessão — salas, inscrições, presença e papéis.
+C. Serviço de economia — transações, cotações, histórico e estoque.
+D. Serviço de equipe — contratação, compatibilidades, snapshots.
+E. Serviço de testes — motor de simulação, resultados, logs, comparação.
+F. Serviço pedagógico — hipótese, conclusão, desafio e indicadores.
+G. Serviço de competição — baterias, largada, estados, snapshots, ranking.
+H. Serviço de QTE — seleção, temporização, tentativa, resolução e auditoria.
+I. Serviço professor — estados, controles, resultados e exportação.
+
+REGRA DE CONFIANÇA:
+O cliente NUNCA grava diretamente saldo, tempo de corrida, efeito de QTE, posição, conclusão de partida ou preço de mercado. Toda mutação oficial passa por ação validada e transação atômica.
+
+SINCRONIZAÇÃO DE CORRIDA SEM SERVIDOR DE GAME LOOP CONTÍNUO:
+- O backend mantém instante de largada, relógio lógico, snapshots, checkpoints e logs oficiais.
+- Os clientes solicitam “syncRace” a cada ~1 segundo enquanto corrida ativa; o backend valida o tempo oficial e avança, em transação idempotente, os checkpoints que já deveriam ter ocorrido.
+- Qualquer cliente autorizado pode solicitar sincronização, mas NÃO escolhe nem manipula o resultado: só o motor do backend avança segundo o tempo do servidor.
+- Operações concorrentes usam lock por corrida/versão para impedir avanço duplicado.
+- Em cada checkpoint, o backend publica snapshot mínimo pelo canal privado.
+- Navegadores animam localmente o deslocamento entre snapshots e suavizam correções.
+- Se a página do professor fechar, os jogadores ainda sincronizam; se todos desconectarem, a próxima reconexão retoma o processamento de eventos com base no tempo oficial e expira QTEs perdidos sem inventar respostas.
+- Um QTE aberto deve pausar o relógio lógico de corrida; fechamento/reabertura registrados com timestamps do servidor. Isso exige modelagem clara de race_clock_paused_at e accumulated_pause_ms.
+- Não enviar posições a 60 Hz pelo Realtime; enviar mudanças relevantes e snapshots econômicos.
+- Em pausa administrativa, não avançar o relógio lógico.
+
+NOTA DE RISCO TÉCNICO:
+O mecanismo de sync sob demanda requer testes cuidadosos para QTEs simultâneos, locks, desconexões e expiração. Se a operação real mostrar insuficiência, adotar worker recorrente autoritativo sem mudar a lógica nem a experiência, em vez de delegar a simulação ao navegador.
+
+RECOMENDAÇÃO DE ESTRUTURA DE REPOSITÓRIO:
+/
+  index.html
+  package.json
+  vite.config.ts (ou .js)
+  vercel.json (quando necessário)
+  .env.example
+  public/
+    assets/
+  src/
+    main.js
+    styles/
+      tokens.css
+      base.css
+      components.css
+      pages.css
+    pages/
+      welcome.js
+      lobby.js
+      team.js
+      garage.js
+      market.js
+      tests.js
+      prep.js
+      race.js
+      results.js
+      teacher.js
+    components/
+      Header.js
+      BudgetPanel.js
+      PartCard.js
+      AttributeBars.js
+      TrackMap.js
+      LogViewer.js
+      QTEOverlay.js
+    services/
+      auth.js
+      rooms.js
+      economy.js
+      telemetry.js
+      realtime.js
+      races.js
+    state/
+      sessionStore.js
+      uiStore.js
+    utils/
+      formatting.js
+      validation.js
+      timeSync.js
+  supabase/
+    migrations/
+    functions/
+      create-room/
+      join-room/
+      team-action/
+      purchase/
+      market-action/
+      run-test/
+      submit-analysis/
+      ready/
+      race-action/
+      sync-race/
+      submit-qte/
+      export-session/
+  shared/
+    simulation/
+      config.js
+      attributes.js
+      sector.js
+      race.js
+      diagnostics.js
+      rules.js
+  tests/
+    unit/
+    integration/
+    e2e/
+  docs/
+    README.md
+    ARCHITECTURE.md
+    BALANCING.md
+    TEACHER_GUIDE.md
+    SECURITY.md
+
+NÃO É PERMITIDO:
+- Incluir service_role no frontend.
+- Usar tabelas abertas para escrita livre do cliente.
+- Confiar em nomes de equipe como autenticação.
+- Aceitar payload de cliente contendo “saldo_resultante” ou “tempo_vencedor” sem recalcular.
+- Usar localStorage como fonte única de verdade dos dados oficiais.
+
+======================================================================
+19. MODELO DE DADOS / BANCO DE DADOS
+======================================================================
+
+ESTRUTURA LÓGICA OBRIGATÓRIA (nomes ajustáveis, significado não):
+
+users_profiles
+- user_id UUID PK (Supabase Auth UID)
+- role ENUM(student,teacher)
+- created_at TIMESTAMPTZ
+- anonymous BOOLEAN
+
+rooms
+- id UUID PK
+- code_hash TEXT UNIQUE (não expor código secreto puro por queries públicas)
+- code_display TEXT (acesso somente para professor e usuários autorizados)
+- teacher_user_id UUID FK
+- name TEXT
+- circuit_id ENUM(balance,technical,speed)
+- state ENUM(CREATED,LOBBY,TEAM_BUILD,TESTING,LOCK_IN,QUALIFYING,FINAL,RESULTS,CLOSED,PAUSED)
+- previous_state TEXT NULL
+- mode ENUM(standard,extended)
+- max_players INTEGER
+- cars_per_heat INTEGER
+- qte_enabled BOOLEAN
+- config_version TEXT
+- created_at, started_at, closed_at TIMESTAMPTZ
+- current_market_phase TEXT
+
+room_members
+- room_id UUID FK
+- auth_user_id UUID FK
+- team_id UUID FK NULL
+- role ENUM(student,teacher,projection)
+- joined_at, last_seen_at TIMESTAMPTZ
+- status ENUM(active,disconnected,removed)
+- UNIQUE(room_id,auth_user_id)
+
+teams
+- id UUID PK
+- room_id UUID FK
+- owner_user_id UUID FK
+- name TEXT
+- color TEXT
+- car_number INTEGER
+- wallet_balance INTEGER
+- ready BOOLEAN
+- ready_at TIMESTAMPTZ NULL
+- creation_state TEXT
+- UNIQUE(room_id,owner_user_id)
+- UNIQUE(room_id,car_number)
+
+team_staff
+- team_id UUID FK UNIQUE
+- pilot_id TEXT NULL
+- mechanic_id TEXT NULL
+- auxiliary_mechanic BOOLEAN
+- staff_purchase_receipts JSONB or purchase ledger references
+- updated_at
+
+team_parts
+- team_id UUID FK
+- slot ENUM(engine,chassis,tires,suspension,aero,brakes)
+- part_id TEXT
+- purchase_receipt_id UUID
+- UNIQUE(team_id,slot)
+
+team_inventory_lots
+- id UUID PK
+- team_id UUID FK
+- supply_id TEXT
+- quantity INTEGER
+- unit_paid_price INTEGER
+- market_phase_at_purchase TEXT
+- created_at
+
+team_financial_ledger
+- id UUID PK
+- team_id UUID FK
+- operation ENUM(initial_credit,staff_buy,staff_refund,part_buy,part_refund,supply_buy,supply_refund,test_fee,race_supply_debit,admin_correction)
+- amount_signed INTEGER
+- balance_after INTEGER
+- related_entity_id TEXT
+- idempotency_key TEXT UNIQUE
+- created_at
+
+market_events
+- id UUID PK
+- room_id UUID FK
+- phase TEXT
+- triggered_by_teacher UUID
+- prices_snapshot JSONB
+- created_at
+
+team_car_snapshots
+- id UUID PK
+- team_id UUID FK
+- config_version TEXT
+- pilot_id, mechanic_id TEXT
+- aux BOOLEAN
+- parts JSONB
+- attributes JSONB
+- cost_snapshot JSONB
+- created_at
+- checksum TEXT
+
+tests
+- id UUID PK
+- team_id UUID FK
+- room_id UUID FK
+- test_number INTEGER
+- snapshot_id UUID FK
+- circuit_id TEXT
+- config_version TEXT
+- total_seconds NUMERIC
+- sector_results JSONB
+- diagnostics JSONB
+- paid_fee INTEGER
+- created_at
+- UNIQUE(team_id,test_number)
+
+student_analyses
+- team_id UUID FK UNIQUE
+- first_test_id UUID FK
+- hypothesis_target TEXT
+- hypothesis_change TEXT
+- hypothesis_rationale TEXT
+- second_test_id UUID FK NULL
+- evaluation ENUM(improved,partially,not_improved) NULL
+- evidence_metric TEXT NULL
+- conclusion_text TEXT NULL
+- teacher_feedback TEXT NULL
+- completed_at TIMESTAMPTZ NULL
+
+heats
+- id UUID PK
+- room_id UUID FK
+- type ENUM(qualifier,final,demo)
+- heat_number INTEGER
+- circuit_id TEXT
+- config_version TEXT
+- status ENUM(created,countdown,running,qte_paused,admin_paused,finished,cancelled)
+- start_at TIMESTAMPTZ NULL
+- elapsed_logical_ms INTEGER
+- accumulated_pause_ms INTEGER
+- active_pause_started_at TIMESTAMPTZ NULL
+- current_checkpoint INTEGER
+- revision INTEGER
+- finished_at TIMESTAMPTZ NULL
+
+heat_participants
+- heat_id UUID FK
+- team_id UUID FK
+- car_snapshot_id UUID FK
+- starting_slot INTEGER
+- base_time_ms INTEGER
+- qte_time_adjustment_ms INTEGER
+- final_time_ms INTEGER NULL
+- rank INTEGER NULL
+- consumed_supplies_snapshot JSONB
+- UNIQUE(heat_id,team_id)
+
+race_snapshots
+- id UUID PK
+- heat_id UUID FK
+- revision INTEGER
+- logical_time_ms INTEGER
+- state_json JSONB
+- created_at
+- UNIQUE(heat_id,revision)
+
+qte_events
+- id UUID PK
+- heat_id UUID FK
+- checkpoint INTEGER
+- type ENUM(reaction,precision,sequence)
+- front_team_id UUID FK
+- behind_team_id UUID FK
+- status ENUM(scheduled,open,resolved,expired,cancelled)
+- payload_public JSONB
+- payload_authoritative JSONB
+- opens_at TIMESTAMPTZ
+- closes_at TIMESTAMPTZ
+- result_json JSONB
+- UNIQUE(heat_id,checkpoint,front_team_id,behind_team_id)
+
+qte_submissions
+- id UUID PK
+- event_id UUID FK
+- auth_user_id UUID FK
+- team_id UUID FK
+- submitted_at_server TIMESTAMPTZ
+- response_json JSONB
+- valid BOOLEAN
+- failure_reason TEXT NULL
+- UNIQUE(event_id,team_id) para tentativas finais
+
+awards
+- room_id UUID FK
+- award_type TEXT
+- winning_team_id UUID FK
+- assigned_by UUID NULL
+- rationale TEXT NULL
+
+room_events_audit
+- id UUID PK
+- room_id UUID FK
+- actor_user_id UUID NULL
+- event_type TEXT
+- payload_safe JSONB
+- created_at
+
+ÍNDICES FUNDAMENTAIS:
+- rooms(teacher_user_id,state)
+- room_members(room_id,status)
+- teams(room_id,ready)
+- tests(team_id,test_number)
+- team_financial_ledger(team_id,created_at)
+- heats(room_id,status)
+- race_snapshots(heat_id,revision DESC)
+- qte_events(heat_id,status)
+
+CONSTRAINTS:
+- wallet_balance >= 0.
+- prices e debits inteiros, não negativos nas tabelas de preços; ledger admite assinado.
+- quantidade de inventário >= 0.
+- apenas uma equipe por estudante por sala.
+- no máximo uma peça por slot.
+- validação de estado da sala antes de toda escrita.
+- transações e locks apropriados para impedir compras simultâneas com mesmo saldo.
+
+RETENÇÃO/PRIVACIDADE:
+- Dados de aula acessíveis somente ao professor da sala e ao próprio aluno dentro do necessário.
+- Definir política de expiração e exclusão de salas antigas (decisão inicial: 30 dias após encerramento, com exportação disponível ao professor antes da exclusão).
+- Não gravar CPF, e-mail de alunos, IPs nos relatórios pedagógicos ou informações sensíveis desnecessárias.
+- Logs técnicos da infraestrutura devem seguir controles do provedor; não expor tokens ou credenciais em exports.
+
+======================================================================
+20. API / OPERAÇÕES DE BACKEND
+======================================================================
+
+TODAS AS OPERAÇÕES EXIGEM:
+- Identificação de sessão via autenticação válida;
+- Autorização por sala, equipe e papel;
+- Validação no servidor das regras e do estado;
+- Idempotência em ações financeiras e ações de corrida;
+- Respostas JSON padronizadas com code, message, data e current_version.
+
+ENDPOINTS / EDGE FUNCTIONS SUGERIDOS:
+
+POST /create-room
+Entrada: name, circuit_id, max_players, mode, qte_enabled
+Saída: room_id, one_time_room_code, rules_summary
+Permissão: teacher
+
+POST /join-room
+Entrada: code, team_name, preferred_color
+Saída: room_id, team_id, room_state, sanitized_roster
+Permissão: authenticated anonymous student
+Proteções: limite de tentativas, validação de código, unicidade de escuderia
+
+GET /room-state?room_id=...
+Saída: versão da sala, estado, perfil de pista, participantes autorizados e dados seguros.
+
+POST /team-action
+Entrada: room_id, action_type (hire_pilot/hire_mechanic/hire_aux/remove_aux), item_id, request_id
+Saída: new_balance, staff, incompatible_slots, version
+
+POST /equip-part
+Entrada: room_id, slot, part_id, request_id
+Saída: new_balance, car_attributes, costs, requirements, version
+
+POST /purchase-supply
+Entrada: room_id, supply_id, quantity, price_quote_version, request_id
+Saída: inventory, balance, unit_price, version
+
+POST /refund-supply
+Entrada: room_id, inventory_lot_id, quantity, request_id
+Saída: refunded_original_value, inventory, balance
+
+POST /market-action
+Entrada: room_id, phase (M1/M2), request_id
+Saída: prices_global, phase
+Permissão: teacher
+
+POST /run-test
+Entrada: room_id, request_id
+Saída: test_id, time, sectors, stats, diagnostics, fee, remaining_balance
+
+POST /submit-analysis
+Entrada: room_id, first_test_id, hypothesis, second_test_id?, evaluation?, evidence_metric?, conclusion?
+Saída: analysis_status, completeness
+
+POST /set-ready
+Entrada: room_id, ready: true/false, request_id
+Saída: ready, unmet_requirements
+
+POST /room-transition
+Entrada: room_id, target_state, request_id
+Saída: state, transition_details
+Permissão: teacher
+
+POST /build-heats
+Entrada: room_id, assignments, qualifiers_per_heat, request_id
+Saída: heats, eligibility_errors
+Permissão: teacher
+
+POST /race-action
+Entrada: heat_id, action: start/pause/resume/cancel, request_id
+Saída: status, start_at, revision, official_time
+Permissão: teacher
+
+POST /sync-race
+Entrada: heat_id, known_revision
+Saída: status, server_time, current_snapshot, active_qtes_public, revision
+Permissão: room member
+
+POST /submit-qte
+Entrada: event_id, answer, submission_id
+Saída: accepted/rejected, reason, event_state_public
+Permissão: student eligible for event
+
+GET /results?room_id=...
+Saída: classificação, tempos, relatórios públicos e dados próprios autorizados.
+
+GET /export-session?room_id=...
+Saída: CSV sanitizado ou conjunto de arquivos estruturados.
+Permissão: teacher
+
+ERROS PADRÃO:
+- ROOM_NOT_FOUND
+- ROOM_CLOSED
+- ROOM_FULL
+- NOT_AUTHORIZED
+- INVALID_ROOM_STATE
+- INSUFFICIENT_FUNDS
+- PART_REQUIREMENT_NOT_MET
+- TEAM_INCOMPLETE
+- MISSING_SUPPLIES
+- ANALYSIS_INCOMPLETE
+- PURCHASE_QUOTE_EXPIRED
+- DUPLICATE_REQUEST
+- QTE_NOT_OPEN
+- QTE_NOT_ELIGIBLE
+- QTE_ALREADY_SUBMITTED
+- RATE_LIMITED
+- CONFLICT_RELOAD_REQUIRED
+
+PADRÃO DE ERRO:
+{
+  "ok": false,
+  "code": "INSUFFICIENT_FUNDS",
+  "message": "Saldo insuficiente: faltam 35 créditos.",
+  "details": {"required": 185, "available": 150}
+}
+
+TODOS OS RETORNOS:
+- Sem vazamento de chaves privadas, regras administrativas internas ou dados financeiros detalhados de outra equipe além do que o professor autorizar divulgar.
+- Respostas paginadas quando houver muitos logs.
+- Snapshot/resposta inclui version para evitar UI trabalhando com dados obsoletos.
+
+======================================================================
+21. REALTIME, SEGURANÇA E INTEGRIDADE DA COMPETIÇÃO
+======================================================================
+
+EVENTOS REALTIME PRINCIPAIS:
+room.member_joined
+room.member_left
+room.stage_changed
+room.market_updated
+team.ready_changed
+heat.countdown_started
+heat.snapshot
+heat.qte_opened
+heat.qte_resolved
+heat.paused
+heat.resumed
+heat.finished
+room.results_ready
+
+REGRAS DE ENTREGA:
+- Realtime transporta notificações e snapshots; banco é fonte definitiva.
+- Mensagens possuem room_id, event_id, revision, timestamp_server e payload limitado.
+- Eventos antigos são descartados pelo cliente se revision <= last_applied_revision.
+- Em reconexão, buscar snapshot completo por HTTP; não depender de ter recebido todas as mensagens.
+- Presence indica conexão, não autenticação nem autorização.
+- Channels privados verificam se usuário pertence à sala e está ativo.
+
+SEGURANÇA E PRIVACIDADE:
+- Supabase RLS ativada em todas as tabelas de dados de usuário/escuderia.
+- Políticas com auth.uid() e checagens de room_members.
+- Código secreto da sala com entropia suficiente, limite de tentativas por IP/UID e renovação pelo professor.
+- Professores com auth real e papel verificado; usuário anônimo nunca pode se tornar professor por parâmetro de requisição.
+- Service-role e segredos somente em Edge Functions/servidor.
+- Sanitizar strings de escuderia e textos de reflexão contra XSS/HTML injection.
+- Não aceitar URLs fornecidas por alunos para imagens ou scripts.
+- Aplicar limites de tamanho em textos e valores de input.
+- Validação de quantidade, preços, requisitos, saldo e estados em cada mutação.
+- Esquema transacional para múltiplas compras simultâneas.
+- Idempotência em qualquer operação sujeita a retry.
+- Auditoria de ações críticas de professor, mercado, reembolsos, corridas e QTEs.
+- Evitar que uma equipe consiga consultar dados privados de outra por manipulação de IDs.
+- Sem anúncios, rastreadores desnecessários ou exigência de dados pessoais para alunos menores.
+- Verificar necessidades de privacidade e consentimento do ambiente escolar antes do uso real.
+
+AMEAÇAS A CONSIDERAR:
+- Compras simultâneas que causam saldo negativo;
+- Reenvio da mesma compra para duplicar reembolso;
+- Modificação de atributos no navegador;
+- Aluno tentando iniciar corrida pelo endpoint do professor;
+- Jogador respondendo QTE do adversário;
+- Manipulação de timestamp de QTE;
+- Spam de inscrições para esgotar sala;
+- Reuso de código expirado;
+- Spoof de mensagens realtime;
+- Reconexão que cria outra escuderia e duplica saldo;
+- Submissão de texto com script malicioso;
+- Duas instâncias atualizando a mesma corrida em paralelo;
+- Participante sem conexão obtendo vantagem indevida.
+
+MITIGAÇÕES:
+Transações, constraints, idempotency keys, autenticacão, RLS, validação e relógio do servidor, rate limits, auditoria, snapshots versionados e testes concorrentes.
+
+======================================================================
+======================================================================
+22. HISTÓRIAS DE USUÁRIO E CRITÉRIOS DE ACEITAÇÃO FUNCIONAIS
+======================================================================
+
+US-01 — ENTRAR NA SALA
+Como aluno, quero entrar com código para competir somente com colegas.
+Aceitação: código válido entra na sala correta, código incorreto falha sem mostrar lista de salas, sala lotada bloqueia, refresh não cria segunda equipe.
+
+US-02 — NOMEAR E PERSONALIZAR
+Como aluno, quero nomear minha escuderia e escolher cor do carro.
+Aceitação: nomes únicos/legíveis, caracteres seguros, cor consistente em garagem e pista, número de carro único.
+
+US-03 — CONTRATAR PILOTO
+Como aluno, quero comparar custo e benefícios de diferentes pilotos.
+Aceitação: bônus refletidos nos atributos; apenas 1 piloto; troca restitui valor pago anterior antes da trava; saldo nunca negativo.
+
+US-04 — CONTRATAR MECÂNICO
+Como aluno, quero escolher nível técnico para desbloquear peças.
+Aceitação: peça nível 3 bloqueada em mecânico nível 2; mensagens claras; downgrade incompatível impedido.
+
+US-05 — MONTAR CARRO
+Como aluno, quero instalar 6 categorias de peças e ver consequências.
+Aceitação: uma peça por slot; preço e delta antes da compra; atributos seguem vetores oficiais; não sobrepor cartão ou perder navegação.
+
+US-06 — GERENCIAR RECURSOS
+Como aluno, quero saber quanto preciso reservar para a corrida.
+Aceitação: custo do motor e nível dos pneus determinam suprimentos; com eficiência < 35, gasolina adicional; compras e devoluções coerentes com ledger.
+
+US-07 — REAGIR AO MERCADO
+Como aluno, quero avaliar riscos de esperar preços mudarem.
+Aceitação: professor atualiza fase global; todas as equipes veem mesma tabela; valor já pago não muda retroativamente; devolução usa preço original.
+
+US-08 — EXECUTAR TESTE
+Como aluno, quero medir o desempenho real do meu carro.
+Aceitação: motor reproduzível; mesmo snapshot/pista = mesmo resultado; dois testes gratuitos; do terceiro em diante 12 Cr.
+
+US-09 — DIAGNOSTICAR GARGALOS
+Como aluno, quero encontrar os problemas que afetam meu tempo.
+Aceitação: log de cada setor, métricas calculadas de verdade, alertas com condições objetivas, sem “erros aleatórios”.
+
+US-10 — COMPARAR MELHORIAS
+Como aluno, quero ver o antes/depois das alterações.
+Aceitação: mostrar delta de tempo, custo marginal e componente(s) alterado(s); indicar quando muitas variáveis mudaram.
+
+US-11 — CONCLUIR DESAFIO DO ENGENHEIRO
+Como aluno, quero justificar mudança e apresentar evidência.
+Aceitação: testar, registrar hipótese, alterar ao menos um item, retestar, registrar conclusão; somente então liberar prontidão.
+
+US-12 — PREPARAR-SE PARA CORRER
+Como aluno, quero conferir se estou apto.
+Aceitação: checklist detalhado com pendências clicáveis; botão desabilitado até condições satisfeitas; travamento após LOCK_IN.
+
+US-13 — CORRER AO MESMO TEMPO
+Como aluno, quero acompanhar minha equipe na mesma pista dos colegas.
+Aceitação: início sincronizado, classificação oficial única, animação fluida, reconexão recupera estado, mesma ordem em todos os clientes.
+
+US-14 — DISPUTAR QTE
+Como aluno, quero ter oportunidade de ultrapassar com reflexos.
+Aceitação: apenas duelos elegíveis, janela sincronizada, falsas largadas detectadas, resultado oficial, sem QTE gerado por qualquer tecla aleatória.
+
+US-15 — VER RESULTADOS E APRENDER
+Como aluno, quero comparar estratégia, desempenho e classificação.
+Aceitação: mostrar tempos e logs de corrida; o aluno consegue identificar por que foi bem/mal em reta/curva e responder reflexão final.
+
+US-16 — ADMINISTRAR A TURMA
+Como professor, quero controlar todas as fases.
+Aceitação: estados e ações dependem da autorização; timers informativos, pause/resume confiável; iniciar baterias e apresentar resultados sem mexer no banco manualmente.
+
+US-17 — PROJETAR A CORRIDA
+Como professor, quero mostrar corrida em telão.
+Aceitação: modo projeção 16:9 com ranking, pista e eventos, leitura autorizada e sem ações administrativas acidentais.
+
+US-18 — EXPORTAR APRENDIZADOS
+Como professor, quero um resumo para avaliar atividade.
+Aceitação: export CSV com estratégias, testes, custos e resultados, sem dados pessoais sensíveis.
+
+US-19 — RETOMAR APÓS QUEDA
+Como aluno, quero voltar ao ponto em que estava.
+Aceitação: login anônimo preservado, dados do banco restaurados, consumíveis e créditos não duplicados, QTE já expirado não reabre.
+
+US-20 — PROTEGER A SALA
+Como professor, quero que ninguém de fora interfira na atividade.
+Aceitação: contas externas não entram sem código vigente, usuários de outra sala não acessam dados, alunos não têm permissão para iniciar corrida ou ver segredos de backend.
+
+======================================================================
+23. EXEMPLOS DE REGRAS EM PSEUDOCÓDIGO
+======================================================================
+
+A) PODE EQUIPAR UMA PEÇA?
+
+function canEquip(team, part):
+    if room.state not in {TEAM_BUILD, TESTING}:
+        return DENY("Montagem encerrada")
+    if team.mechanic_level < part.required_level:
+        return DENY("Mecânico insuficiente")
+    old_item_paid_price = paidReceipt(team.part_at(part.slot)) or 0
+    extra_cost = part.current_fixed_price - old_item_paid_price
+    if extra_cost > team.wallet_balance:
+        return DENY("Saldo insuficiente")
+    return ALLOW(extra_cost)
+
+OBSERVAÇÃO: se extra_cost negativo, creditar diferença; troca e registro devem ocorrer em UMA transação atômica. Usar recibos de aquisição para cálculo e reembolso.
+
+B) QUANTO COMBUSTÍVEL É NECESSÁRIO?
+
+function requiredFuel(car):
+    units = 2 if car.engine == MOTOR_TURBO else 1
+    if car.E < 35:
+        units += 1
+    return units
+
+C) QUANTOS PNEUS?
+
+function requiredTires(car):
+    return 2 if car.tires == TIRE_RACE else 1
+
+D) CARRO PODE SER TRAVADO?
+
+function canReady(team):
+    return (
+        team.has_one_pilot
+        and team.has_one_main_mechanic
+        and team.all_six_slots_filled
+        and team.all_parts_compatible
+        and team.inventory.fuel >= requiredFuel(team.car)
+        and team.inventory.tires >= requiredTires(team.car)
+        and team.has_completed_engineering_challenge
+        and team.wallet_balance >= 0
+        and room.state in {TESTING, LOCK_IN}
+    )
+
+E) CÁLCULO DO SETOR
+
+function computeSector(car, sectorType, lapIndex, hasRepairKit):
+    score = weightedScore(car.attributes, sectorType)
+    baseTime = referenceSeconds[sectorType] * clamp(1.20-0.004*score,0.82,1.20)
+    deficit = max(0,60-car.reliability)
+    wear = baseTime * (deficit/1000) * lapIndex
+    if hasRepairKit:
+        wear *= 0.60
+    return baseTime + wear + criticalPenaltyIfLastSector(...)
+
+F) ELEGIBILIDADE DO QTE
+
+function canDuel(front, behind, checkpoint):
+    return (
+        front and behind have adjacent standings
+        and officialGapAtCheckpoint(front,behind) <= 0.60 seconds
+        and both players online
+        and neither in QTE cooldown
+        and checkpoint.isCandidate
+        and eventCount < maxQTE
+    )
+
+G) COMPRAS SEGURAS
+
+transaction purchase(team,item,request_id):
+    assert valid_auth_and_room_state
+    assert idempotency_key_not_processed_or_return_prior_result
+    lock team_wallet_row
+    calculate_server_price_and_requirements
+    assert sufficient_wallet
+    update inventory / equipment
+    update wallet
+    insert ledger entry
+    commit
+    publish event
+
+======================================================================
+24. TELAS DE DADOS E ESTRUTURA DE GRÁFICOS
+======================================================================
+
+PAINEL DE ATRIBUTOS:
+- 6 barras horizontais, 0–100, nomes completos e valores.
+- Mudanças de peça mostram delta em verde/vermelho + descrição textual.
+- Atributos negativos não são representados como “-5 final”; mostrar valor final e mudança.
+
+GRÁFICO DE TESTES:
+- Barras por setor: teste anterior versus atual, mesma escala.
+- Tempo total destacado, com economia/perda em segundos e percentual.
+- Tabela acessível equivalente para quem não usa gráficos.
+
+GRÁFICO DE CUSTOS:
+- Três elementos: investido (fixo), suprimentos já comprados, saldo.
+- Não criar pizza com 12 categorias; rótulos diretos.
+
+RELATÓRIO DE GARGALOS:
+- Lista ordenada por maior perda temporal absoluta comparada à referência.
+- Cada item com: setor, atraso, score e atributos determinantes.
+- Link “Ver peças que afetam isso”, abrindo catálogo filtrado mas SEM compra automática.
+
+LOG FINANCEIRO:
+- Histórico das transações com data/hora, item, crédito/débito, saldo anterior/novo.
+- No front do aluno, exibir resumido; professor pode ver detalhado.
+
+PÓS-CORRIDA:
+- Tempo base sem QTE;
+- Ganhos e perdas por QTE, se houver;
+- Penalidade total de desgaste;
+- Tempo final com QTE;
+- Colocação;
+- Explicação causal das diferenças de setores.
+
+======================================================================
+25. REGISTROS, TELEMETRIA E OBSERVABILIDADE
+======================================================================
+
+MÉTRICAS DE PRODUTO (SEM IDENTIFICADORES PESSOAIS):
+- Número de equipes inscritas e ativas;
+- Tempo médio em construção e testes;
+- Quantidade média de testes por equipe;
+- Percentual que concluiu desafio do engenheiro;
+- Quantidade de alterações entre primeiro e segundo teste;
+- Percentual que melhorou o tempo e mediana do ganho;
+- Erros financeiros impedidos (saldo/requisitos);
+- Desconexões por corrida;
+- QTEs gerados, respondidos, empatados e expirados;
+- Duração de bateria e final;
+- Quantidade de vezes que professor precisou pausar/reiniciar;
+- Taxa de reconexão bem-sucedida.
+
+AUDITORIA:
+- Registrar versão das regras e configurações aplicadas;
+- Registrar eventos administrativos e transações financeiras;
+- Registrar snapshots decisivos de corrida;
+- Identificar erros de serialização, concorrência e divergência de versão.
+
+TELEMETRIA DE ENSINO:
+- Quais gargalos foram selecionados;
+- Quais alterações foram realizadas;
+- Se o aluno mudou uma ou várias variáveis;
+- Como o resultado numérico mudou;
+- Se o aluno justificou a decisão.
+
+PRIVACIDADE:
+- Não criar perfil de comportamento permanente da criança nem ranking público na internet.
+- Indicadores ficam vinculados apenas à sala e à aula, com retenção limitada.
+
+======================================================================
+26. PLANEJAMENTO OPERACIONAL DA AULA (INTEGRAÇÃO COM SLIDES)
+======================================================================
+
+IMPORTANTE: ESTE PRD É DO JOGO. A APRESENTAÇÃO DE SLIDES TERÁ DOCUMENTO/IMPLEMENTAÇÃO PRÓPRIA.
+O jogo deve, contudo, suportar explicitamente o roteiro pedagógico da aula e os exemplos dos slides.
+
+PÚBLICO: 15–17 anos.
+FOCO: lógica condicional, escolhas, custos de oportunidade, análise de projetos, dados e raciocínio quantitativo.
+
+ROTEIRO DE 60 MINUTOS:
+00–09 min: introdução, problemas de decisão, SE/ENTÃO/SENÃO, condição E.
+09–16 min: custo fixo/variável, trade-offs, testes controlados e logs.
+16–22 min: demonstração de contratação, garagem, mercado, testes e QTE.
+22–35 min: equipes montam carro e compram suprimentos.
+35–45 min: realizam dois testes, analisam dados e ajustam projeto.
+45–57 min: classificatórias, final e premiações.
+57–60 min: reflexão pós-corrida e fechamento.
+
+ROTEIRO ESTENDIDO 90 MINUTOS:
+00–12 min: escolhas, condições compostas e planejamento.
+12–25 min: custo de oportunidade, risco, tempo por setor e leitura de logs.
+25–35 min: demonstração completa do produto e regras.
+35–55 min: criação das equipes, peças e mercado.
+55–70 min: testes, análise marginal e melhorias.
+70–86 min: baterias, final e classificação.
+86–90 min: conclusão, hipóteses versus evidências.
+
+AJUSTES DE CONTEÚDO PARA 15–17:
+- Introduzir “restrição de projeto”: máximo desempenho possível sob 1.200 Cr.
+- Introduzir “valor marginal”: quantos segundos foram ganhos por 100 Cr extras.
+- Introduzir “risco”: motor veloz com confiabilidade insuficiente pode perder em corrida de 3 voltas.
+- Introduzir “reprodutibilidade”: repetir o mesmo teste não deve criar resultado diferente sem mudança de variável.
+- Introduzir “orçamento operacional”: comprar carro não basta; é preciso fazê-lo funcionar.
+- Introduzir “otimização contextual”: o melhor conjunto de peças depende do circuito.
+
+DINÂMICAS CURTAS PARA APRESENTAÇÃO:
+1. Perguntar qual carro vence em retas ou curvas (sem resposta universal).
+2. Lógica condicional: turbo só com mecânico especialista E orçamento.
+3. Diagnóstico: melhorar motor ou pneus após log de perda nas curvas?
+4. Trade-off: piloto melhor ou suspensão melhor com orçamento restante?
+5. Debate rápido: a menor volta custa mais? Vale a pena?
+6. Reflexão final: quem previu corretamente e quem mudou de opinião após dados?
+
+CONEXÃO COM TECNOLOGIA/IA:
+- Mostrar que softwares executam regras condicionais.
+- Os logs são dados usados para diagnosticar comportamentos.
+- Avaliar múltiplas métricas é o começo do pensamento quantitativo usado em sistemas inteligentes.
+- Explicar que não basta “a IA falou”; boas decisões requerem critérios, dados e verificação.
+- Não afirmar falsamente que o jogo usa machine learning/IA se a V1 é uma simulação determinística.
+
+======================================================================
+27. CRITÉRIOS DE SUCESSO DO PRODUTO E DA AULA
+======================================================================
+
+SUCESSO PEDAGÓGICO:
+- Pelo menos 90% dos participantes concluem 2 testes e a reflexão obrigatória em aula-piloto de 60 min (meta a validar).
+- Pelo menos 80% conseguem indicar uma consequência de uma escolha com “se/então”.
+- Pelo menos 70% conseguem identificar um gargalo a partir de logs e justificar uma modificação.
+- A maioria entende diferença entre custo fixo e custo variável em revisão oral.
+- Os alunos reconhecem que o resultado não depende apenas de comprar peças caras.
+
+SUCESSO DE EXPERIÊNCIA:
+- Pelo menos 90% das equipes ativas chegam à largada (meta da primeira aula-piloto).
+- Professor consegue operar a experiência sem comandos de terminal ou intervenção de desenvolvedor.
+- Todos veem a mesma classificação oficial no resultado.
+- Alunos compreendem requisitos de peças sem recorrer constantemente ao professor.
+- Interface permanece legível em projeção 16:9.
+
+SUCESSO TÉCNICO:
+- 10 jogadores + 1 professor + 1 projeção simultaneamente em teste real.
+- Sala e estados se mantêm consistentes após refresh/reconexão.
+- 0 compras que levem a saldo negativo.
+- 0 efeitos de QTE duplicados.
+- 0 divergências de vencedor oficial entre clientes após reconciliação.
+- Tempo de resposta alvo de ações comuns < 2 segundos em conexão escolar razoável (não uma garantia absoluta).
+- Erros de comunicação mostram recuperação clara e não repetem cobranças.
+- Conclusão de uma bateria sem travamento crítico.
+
+======================================================================
+28. MATRIZ DE TESTES DE QUALIDADE / QA
+======================================================================
+
+TESTES UNITÁRIOS DA ECONOMIA:
+QA-001: Todas as equipes começam com saldo exatamente 1200.
+QA-002: Compra com saldo exato é permitida, encerrando em 0.
+QA-003: Compra acima do saldo falha sem alterar saldo/inventário.
+QA-004: Duas compras simultâneas não gastam o mesmo saldo duas vezes.
+QA-005: Repetir request_id não duplica compra.
+QA-006: Troca de peça restitui preço ORIGINAL pago, não preço corrente.
+QA-007: Troca de mecânico devolve o valor já pago e cobra diferença corretamente.
+QA-008: Mecânico nível 1 não instala motor nível 2 ou 3.
+QA-009: Downgrade com peça incompatível deve ser rejeitado de forma explicativa.
+QA-010: Preço de combustível 15->18 em M1 e 18->12 em M2.
+QA-011: Preço de pneu 25->20 em M1 e 20->30 em M2.
+QA-012: Mecânico auxiliar aplica 30% desconto com arredondamento definido.
+QA-013: Devolução de suprimento comprado em M1 usa preço pago em M1.
+QA-014: Não há inventário negativo nem estoque acima de 8 por categoria.
+QA-015: Motor turbo exige 2 combustíveis, e +1 se E < 35.
+QA-016: Pneu de competição exige 2 kits na classificatória.
+QA-017: A final não consome estoque comprado pelo aluno.
+
+TESTES DA SIMULAÇÃO:
+QA-018: Mesma configuração e circuito retornam mesmo tempo de teste.
+QA-019: Motor do servidor é igual ao motor utilizado para gerar logs.
+QA-020: Todos os scores resultam entre 10 e 100.
+QA-021: Resultados com tempo acima/abaixo de referência respeitam a fórmula.
+QA-022: Desgaste cresce em voltas 2 e 3 quando R < 60.
+QA-023: Kit de reparos reduz penalidade e é consumido uma vez.
+QA-024: R < 25 provoca parada corretiva de 1 s/volta (ou 0,5 com kit).
+QA-025: Alterar peça pode melhorar um setor e piorar outro.
+QA-026: Tempos e ranking usam precisão interna, não formatação visual.
+QA-027: Testes não consomem combustível/pneus.
+QA-028: Teste #1 e #2 grátis; #3 custa 12 Cr apenas uma vez.
+
+TESTES PEDAGÓGICOS:
+QA-029: Não é possível marcar pronto sem 2 testes e 1 alteração.
+QA-030: Não é possível marcar pronto sem hipótese e conclusão.
+QA-031: Histórico de mudanças registra todos os slots alterados.
+QA-032: Comparação do teste 1 vs 2 está correta nos segundos e no percentual.
+QA-033: Indicador marginal é ocultado/explicado quando denominador <=0.
+QA-034: Alertas derivam exclusivamente de condições reais.
+QA-035: Professor visualiza evidências e atribui prêmios pedagógicos.
+
+TESTES MULTIPLAYER:
+QA-036: 10 estudantes entram em uma sala, sem duplicidade de equipe.
+QA-037: Código de sala inválido não permite acesso.
+QA-038: Aluno externo não lê os dados de outra sala nem se inscreve sem autorização.
+QA-039: Professor vê estados e pode transicionar a sala.
+QA-040: Aluno não pode realizar ação do professor.
+QA-041: Todos veem mesma largada e convergem para mesmo ranking.
+QA-042: Refresh durante a corrida recupera snapshot correto.
+QA-043: Fechar a aba do professor não altera o vencedor oficial.
+QA-044: Duas chamadas simultâneas de sync-race não duplicam evento.
+QA-045: QTE só aparece entre adjacentes com diferença <=0,60 s.
+QA-046: Duelo não aparece se cooldown ou limite atingido.
+QA-047: Falsa largada invalida resposta.
+QA-048: Resposta de equipe inelegível é rejeitada.
+QA-049: Repetir submission_id não duplica efeito.
+QA-050: Vitória do perseguidor aplica -0,70s/+0,15s exatamente uma vez.
+QA-051: Vitória do líder aplica -0,35s/+0,20s exatamente uma vez.
+QA-052: Empate <=50ms não concede bônus.
+QA-053: QTE expirado sem respostas retoma corrida sem alterar tempos.
+QA-054: Pausar durante QTE cancela/reagenda coerentemente sem bônus indevido.
+QA-055: Corrida cancelada antes da largada devolve suprimentos reservados.
+QA-056: Repetir corrida técnica tem novo heat_id, sem contaminação de resultados.
+QA-057: Classificados corretos chegam à final e o resto vira espectador.
+
+TESTES DE SEGURANÇA E ACESSIBILIDADE:
+QA-058: Chave service-role não aparece no bundle da Vercel.
+QA-059: Policies RLS não permitem leitura/escrita cruzada de dados privados.
+QA-060: Nome de equipe com HTML/script é sanitizado.
+QA-061: Sem entrada de dados pessoais obrigatórios de aluno.
+QA-062: Navegação por teclado e foco visível nas telas essenciais.
+QA-063: Mensagens de erro não dependem de cor para serem compreendidas.
+QA-064: Modo reduzir movimento não altera cálculos da corrida.
+QA-065: Uso de ESPAÇO no QTE não rola a página.
+QA-066: Transação interrompida não deixa registro financeiro parcial.
+QA-067: Reenvio após timeout recebe resultado da mesma transação, sem nova cobrança.
+
+TESTES DE CARGA:
+QA-068: 10 estudantes + professor + projeção em mesma sala, ações simultâneas.
+QA-069: 20 inscrições com limite de 10 não excedem capacidade.
+QA-070: 2 baterias sequenciais e final com reconexões eventuais.
+QA-071: Picos de requisição de sync não saturam banco para o tamanho de turma.
+QA-072: Alteração de mercado simultânea a compra resulta em cotação íntegra ou erro de recotação, nunca custo ambíguo.
+
+TESTES DE REGRESSÃO:
+QA-073: Alterar config_version preserva relatórios históricos.
+QA-074: Export CSV reflete times oficiais e histórico de custos.
+QA-075: Recarregar o navegador na tela de testes preserva relatório e hipótese.
+
+======================================================================
+29. CENÁRIOS DE TESTE COM USUÁRIOS REAIS
+======================================================================
+
+CENÁRIO A — EQUIPE ECONÔMICA:
+Aluno compra piloto iniciante, mecânico aprendiz e todos os componentes básicos. Mantém grande reserva e poucos gastos; o carro é robusto, mas não deve ser automaticamente o mais rápido.
+Resultado esperado: carro funcional, custo baixo, corrida viável, bom material para comparação.
+
+CENÁRIO B — FOCO EM TURBO:
+Aluno prioriza mecânico especialista, motor turbo e pilotagem forte, economiza em outras peças. Sua eficiência pode exigir combustível adicional, e a configuração pode sacrificar controle.
+Resultado esperado: bom desempenho em retas; possibilidade de sofrer no circuito técnico.
+
+CENÁRIO C — ESPECIALISTA EM CURVAS:
+Aluno investe em pneus esportivos/competição, suspensão e freios em vez de motor mais forte.
+Resultado esperado: melhor curva e possível perda relativa nas retas, especialmente em circuito de alta velocidade.
+
+CENÁRIO D — ANÁLISE BEM SUCEDIDA:
+Aluno executa teste, vê perda nas curvas, troca uma única peça e retesta.
+Resultado esperado: comparação mostra causa provável de mudança e custo incremental.
+
+CENÁRIO E — MELHORIA QUE NÃO COMPENSA:
+Aluno paga por um componente mais caro, melhora apenas 0,05 s na volta e eleva custos variáveis.
+Resultado esperado: interface mostra baixa eficiência marginal; aluno pode justificar trocar de volta.
+
+CENÁRIO F — GASTO EXCESSIVO:
+Aluno monta caro, mas estoque de combustível é insuficiente.
+Resultado esperado: bloqueio explicativo de prontidão; possibilidade de trocar/reembolsar peças e reorganizar orçamento.
+
+CENÁRIO G — QUEDA DE INTERNET:
+Aluno cai na metade de uma bateria e retorna.
+Resultado esperado: carro continua conforme simulação; QTE perdido é neutro; não surge equipe duplicada.
+
+CENÁRIO H — TURMA MUITO COMPETITIVA:
+Todos tentam clicar o máximo possível durante QTEs.
+Resultado esperado: anti-spam/falsa largada funcionam; o jogo não recompensa pressionar antes da hora.
+
+CENÁRIO I — ALUNO COM DIFICULDADE MOTORA:
+Professor inicia bateria sem QTEs por adaptação de acessibilidade.
+Resultado esperado: corrida válida e justa, decidida por planejamento, sem efeito QTE residual.
+
+CENÁRIO J — ALTERAÇÃO DO MERCADO:
+Alguns alunos compram combustível em M0, outros esperam M1.
+Resultado esperado: histórico explica diferença de custo e valores de aquisição; não existe arbitragem ao devolver.
+
+======================================================================
+30. CRONOGRAMA DE IMPLEMENTAÇÃO EM FASES
+======================================================================
+
+FASE 1 — FUNDAÇÃO E ECONOMIA
+Entregáveis:
+- Repositório Vite + HTML/CSS/JS, design system;
+- Fluxo de autenticação anônima de aluno e conta de professor;
+- Criação e ingresso em sala;
+- Criação de escuderia;
+- Catálogos, contratação e troca;
+- Montagem de carro com atributos e requisitos;
+- Ledger e inventário transacionais;
+- Interface funcional de equipe/garagem/mercado;
+- Testes de economia e RLS iniciais.
+Critério de saída: aluno pode montar, desmontar e recompor carro sem erros de saldo e professor enxerga os participantes.
+
+FASE 2 — SIMULAÇÃO, LOGS E CAMADA PEDAGÓGICA
+Entregáveis:
+- Engine determinística e três circuitos;
+- Centro de Testes;
+- Logs coerentes;
+- Comparações, gráficos e indicador marginal;
+- Desafio do Engenheiro;
+- Mercado M0/M1/M2;
+- Checklist e ready/lock.
+Critério de saída: ao alterar componente, testes reproduzem mudança real, e aluno precisa analisar para ficar pronto.
+
+FASE 3 — CORRIDA MULTIPLAYER
+Entregáveis:
+- Baterias, cronômetro oficial e classificação;
+- Renderização animada da pista;
+- Snapshots, reconnect e sincronização;
+- Sistema de QTE completo;
+- Administração de corrida;
+- Final, premiações e resultados.
+Critério de saída: corrida simultânea testada com 10 alunos sem divergência de resultados.
+
+FASE 4 — POLIMENTO E OPERAÇÃO
+Entregáveis:
+- Tutoriais, modo projeção, sons opcionais;
+- Acessibilidade, redução de movimento;
+- Correções de UX e desempenho;
+- Relatórios/CSV;
+- Segurança e testes de carga;
+- Documentação técnica, manual do professor e deploy na Vercel.
+Critério de saída: aula-piloto realizável por professor sem operador técnico.
+
+PRIORIDADES:
+P0 (obrigatório): economia, montagem, atributos, testes, logs, desafio pedagógico, multiplayer privado, corrida e ranking autoritativos, sala/professor, QTE seguro, persistência, segurança.
+P1 (importante): modo projeção, comparação financeira avançada, mercado M2, exportação, tutorial guiado, acessibilidade e premiações pedagógicas.
+P2 (polimento): sons, transições sofisticadas, personalização estética avançada, gráficos adicionais.
+
+REGRA DE CORTE DE ESCOPO:
+Se o prazo de desenvolvimento apertar, remover P2 e simplificar arte/efeitos; NÃO remover o Centro de Testes, o Desafio do Engenheiro ou a segurança multiplayer. Uma corrida visualmente mais simples, porém correta, é melhor do que uma corrida bonita sem consistência.
+
+======================================================================
+31. PRINCIPAIS RISCOS, COMPROMISSOS E MITIGAÇÕES
+======================================================================
+
+RISCO 1 — COMPLEXIDADE EXCESSIVA PARA UMA AULA DE 60 MIN
+Mitigação: fluxo em etapas, 2 testes gratuitos, catálogos com 3 opções, exemplos simples, tutoriais curtos e professor como operador das fases. Modo 90 min para exploração completa.
+
+RISCO 2 — JOGADOR COMPRAR PEÇA RUIM E NÃO TER SAÍDA
+Mitigação: reembolso integral do preço pago antes de LOCK_IN, valores visíveis e checklist de recursos.
+
+RISCO 3 — CARRO “META” VENCER SEMPRE
+Mitigação: análise das três pistas, múltiplas métricas, custo operacional e desgaste; simular combinações viáveis e ajustar configuração antes do uso.
+
+RISCO 4 — QTE FAZER ESTRATÉGIA PERDER IMPORTÂNCIA
+Mitigação: máximo 4 checkpoints, elegibilidade <=0,60 s, bônus em segundos pequenos e corrida decidida por tempo agregado.
+
+RISCO 5 — QTE PARECER INJUSTO POR LATÊNCIA
+Mitigação: tolerância de 50 ms, computadores próximos, mesma rede/teclado, poucas disputas e modo sem QTE para contingência.
+
+RISCO 6 — FALHAS DE REALTIME
+Mitigação: snapshots persistidos, recuperação por HTTP, eventos versionados, sincronização sob demanda e testes com concorrência.
+
+RISCO 7 — INCONSISTÊNCIA FINANCEIRA
+Mitigação: ledger, recibos de preço pago, transactions, locks, idempotência e regras de inventário.
+
+RISCO 8 — ALUNOS FICAREM PRESOS NOS LOGS
+Mitigação: visão simples primeiro, gargalo principal destacado e abertura opcional de detalhes; professor orienta hipótese com base em 1 métrica.
+
+RISCO 9 — APRESENTAÇÃO OU NAVEGADOR CAIR
+Mitigação: modo de projeção independente, reconexão, estado persistido, pause administrativo e possibilidade de retomar.
+
+RISCO 10 — ALUNOS DESCOBRIREM SEGREDOS OU TENTAREM BURLAR
+Mitigação: backend autoritativo, RLS, códigos protegidos e validações; tratar ações do cliente como não confiáveis.
+
+RISCO 11 — DEPENDÊNCIA DE ACESSO À INTERNET
+Mitigação: testar Wi-Fi e provedor antes da aula; professor disponibiliza demonstração local de gestão/testes como plano B, sem alegar que multiplayer online funcionará offline.
+
+======================================================================
+32. DEFINIÇÃO DE PRONTO (DEFINITION OF DONE)
+======================================================================
+
+O produto só pode ser considerado pronto para o uso em turma quando TODOS os itens abaixo forem comprovados:
+
+[ ] Aplicação disponível em URL estável da Vercel com HTTPS.
+[ ] Professor cria sala e compartilha código privado com segurança.
+[ ] Aluno entra sem fornecer dados pessoais e cria exatamente uma escuderia.
+[ ] Cadastro de equipe oferece 3 pilotos, 3 mecânicos e 1 auxiliar opcional.
+[ ] Garagem contém 6 categorias e 3 opções por categoria com preços/requisitos.
+[ ] Orçamento inicial é 1.200; nenhuma ação gera saldo negativo.
+[ ] Contratações, compras, devoluções e mudanças são persistidas e auditáveis.
+[ ] Atributos e custos operacionais recalculam corretamente.
+[ ] Mercado possui preço global M0/M1 e, se ativado, M2.
+[ ] Testes são reproduzíveis e duas primeiras execuções são gratuitas.
+[ ] Logs explicam resultados verdadeiros e gráficos comparam testes.
+[ ] Desafio do Engenheiro bloqueia prontidão até conclusão.
+[ ] Professor vê checklist e controla etapas da sala.
+[ ] Largada e resultado oficiais ficam sincronizados entre participantes.
+[ ] Há corrida animada com setores, desgaste e 3 voltas.
+[ ] Há QTE de reação, precisão e sequência com validação autoritativa.
+[ ] QTEs só aparecem quando critérios de proximidade forem satisfeitos.
+[ ] Corrida não concede vantagem por spam de teclado ou edição de navegador.
+[ ] Qualificatória, classificados, grande final e pódio funcionam.
+[ ] Professor tem modo projeção e pausa/retomada confiáveis.
+[ ] Refresh/reconexão não perdem progresso nem duplicam efeitos.
+[ ] Testes automatizados de economia, engine, permissões, QTE e corrida passam.
+[ ] Teste presencial/real com pelo menos 10 clientes simultâneos é concluído.
+[ ] Interface é legível, navegável e usável em computadores escolares.
+[ ] Manual do professor contém sequência de passos para abrir aula, resolver problemas e exportar resultados.
+[ ] Arquivo .env.example documenta somente variáveis públicas e nomes de segredos, sem expor tokens.
+[ ] Documentação registra quais regras estão no servidor e como configurar novo circuito.
+[ ] Controle de dados pessoais, exclusão e acesso está configurado para o uso educacional.
+
+======================================================================
+33. ENTREGÁVEIS EXIGIDOS DO DESENVOLVEDOR / AGENTE DE CÓDIGO
+======================================================================
+
+1. Código-fonte completo e organizado, sem pseudocódigo substituindo funcionalidade.
+2. App web com HTML/CSS/JS funcional, compilável por Vite e implantável na Vercel.
+3. SQL de migrações, constraints, índices, policies RLS e funções transacionais.
+4. Edge Functions, validações e esquema de APIs documentados.
+5. Seed dos catálogos, pistas e configurações versionadas.
+6. Engine de simulação isolada com testes e documentação das fórmulas.
+7. UI do aluno, professor e projeção.
+8. Sistema de controle de estados, economia, testes, corridas e QTE.
+9. Testes automatizados unitários, integração e e2e de fluxos críticos.
+10. README de instalação local, configuração Supabase e publicação Vercel.
+11. Guia do professor com fluxo da aula e resolução de incidentes.
+12. Documentação de arquitetura e segurança.
+13. Relação de limitações reais verificadas antes da aula.
+14. Scripts/configuração de teste de carga com múltiplos navegadores.
+15. Relatório final de validação dos critérios da seção 32.
+
+EXIGÊNCIAS DE QUALIDADE:
+- Não usar valores hardcoded em diversos arquivos; centralizar config.
+- Não encenar servidor falso no front para demonstrar jogo “online”.
+- Não construir botões sem funcionalidade; se uma opção estiver em desenvolvimento, não apresentá-la como pronta.
+- Não usar inteligência artificial como caixa-preta para definir resultados dos carros.
+- Não deixar console com erros críticos.
+- Escrever comentários objetivos para fórmulas e regras de negócio.
+- Mostrar mensagens de erro recuperáveis.
+- Separar camadas de UI, regras, dados e backend.
+
+======================================================================
+34. MELHORIAS FUTURAS (FORA DO ESCOPO OBRIGATÓRIO)
+======================================================================
+
+- Corridas em pistas com clima variável e previsão meteorológica para planejamento.
+- Compra/estratégia de manutenção entre múltiplas corridas com campeonato por pontos.
+- Laboratório de simulação “e se...?” com múltiplos cenários.
+- Curva de Pareto: custo vs tempo vs risco, para alunos mais avançados.
+- Dashboard de sensibilidade: quais atributos alteram mais o tempo no circuito escolhido.
+- Modo cooperativo, com alunos em funções de gestor, engenheiro, analista e piloto da mesma escuderia.
+- Editor de pistas com configuração de setores.
+- Telemetria mais sofisticada, ruído estatístico controlado e introdução à incerteza experimental (apenas em módulo didático posterior).
+- Temporadas de corrida e campeonato completo entre várias aulas.
+- Ferramenta de comparação coletiva de estratégias com dados anônimos das escuderias.
+- Recursos de IA explicitamente pedagógicos para resumir relatórios ESTRUTURADOS ou ajudar a elaborar perguntas — jamais para alterar os resultados oficiais sem lógica verificável.
+
+======================================================================
+35. CONSIDERAÇÕES FINAIS E REGRA DE PRODUTO
+======================================================================
+
+O Fórmula Tech é, essencialmente, um jogo de engenharia de decisões. A personalização do carro, a gestão de profissionais e suprimentos e a corrida multiplayer são recursos motivadores; o aprendizado acontece quando o adolescente precisa prever consequências, aplicar condições, administrar recursos escassos, testar hipóteses e justificar melhorias usando dados.
+
+A EXPERIÊNCIA DEVE DAR AO ALUNO CINCO RESPOSTAS:
+1. O que eu queria alcançar?
+2. Quais recursos e limitações eu tinha?
+3. Quais escolhas fiz e que consequências elas provocaram?
+4. O que os testes e logs realmente mostraram?
+5. O que eu mudaria com base nas evidências?
+
+CRITÉRIO PEDAGÓGICO DE QUALIDADE:
+Se um aluno vencer sem ter analisado nada, ainda terá jogado uma corrida. Se, além disso, souber explicar por que seu carro se comportou daquela forma e como as escolhas afetaram a performance, terá aprendido o conteúdo central da aula. O projeto deve orientar todas as equipes a chegar ao segundo resultado.
+
+NÃO SUBSTITUIR PLANEJAMENTO POR SORTE.
+NÃO SUBSTITUIR ANÁLISE POR COMPRA MAIS CARA.
+NÃO SUBSTITUIR JOGO REAL POR BOTÕES DECORATIVOS.
+NÃO SUBSTITUIR VALIDAÇÃO DE SERVIDOR POR CONFIANÇA NO CLIENTE.
+
+======================================================================
+36. VERIFICAÇÃO PRELIMINAR DO BALANCEAMENTO MATEMÁTICO
+======================================================================
+
+Foi realizada uma checagem combinatória preliminar, em código auxiliar, com:
+- 3 opções em cada uma das 6 categorias de peças;
+- 3 opções de pilotos;
+- mecânico principal mínimo exigido por cada combinação;
+- auxiliar presente/ausente;
+- orçamento de 1.200 Cr;
+- preço M0 e suprimentos OBRIGATÓRIOS de uma corrida;
+- corridas de 3 voltas, sem QTE e sem kit opcional de reparos.
+
+RESULTADO: 1.312 CONFIGURAÇÕES FINANCEIRAMENTE VIÁVEIS nesse recorte.
+
+As melhores configurações encontradas nesse experimento foram DISTINTAS por circuito:
+
+CIRCUITO EQUILIBRADO:
+- Motor Equilibrado, Chassi Equilibrado, Pneus Esportivos,
+  Suspensão Esportiva, Aero Equilibrada, Freios Esportivos;
+- Piloto Profissional, Mecânico Experiente, sem auxiliar;
+- Custo fixo + suprimentos mínimos: 1.190 Cr;
+- Tempo calculado de 3 voltas: aproximadamente 115,46 s.
+
+CIRCUITO TÉCNICO (5 CURVAS FECHADAS):
+- Motor Econômico, Chassi Reforçado, Pneus Esportivos,
+  Suspensão Profissional, Aero Alta Pressão, Freios Esportivos;
+- Piloto Iniciante, Mecânico Especialista, sem auxiliar;
+- Custo fixo + suprimentos mínimos: 1.180 Cr;
+- Tempo calculado de 3 voltas: aproximadamente 121,77 s.
+
+CIRCUITO ALTA VELOCIDADE (4 RETAS):
+- Motor Turbo, Chassi Leve, Pneus Convencionais,
+  Suspensão Esportiva, Aero Baixo Arrasto, Freios Esportivos;
+- Piloto Iniciante, Mecânico Especialista, sem auxiliar;
+- Custo fixo + suprimentos mínimos: 1.200 Cr;
+- Tempo calculado de 3 voltas: aproximadamente 107,50 s.
+
+INTERPRETAÇÃO PEDAGÓGICA:
+A especialização por pista produz, neste modelo inicial, vencedores diferentes; isso é mais coerente com o objetivo de estimular análise do circuito e trade-offs do que uma configuração ótima universal.
+
+LIMITAÇÃO DA VALIDAÇÃO:
+Isto é um teste matemático preliminar dos parâmetros escritos, NÃO um playtest do jogo nem certificação final de equilíbrio. Antes do lançamento, repetir a enumeração usando a engine definitiva, incluir desgaste, auxiliares, kits opcionais, alterações M1/M2, QTEs e testes de experiência de jogadores reais. Se houver dominância indevida, balancear com nova config_version.
+
+======================================================================
+37. REFERÊNCIAS TÉCNICAS PARA IMPLEMENTAÇÃO (VERIFICAR NA CODIFICAÇÃO)
+======================================================================
+
+Supabase Realtime Broadcast:
+https://supabase.com/docs/guides/realtime/broadcast
+
+Supabase Realtime Authorization:
+https://supabase.com/docs/guides/realtime/authorization
+
+Supabase Auth Anonymous Sign-ins:
+https://supabase.com/docs/guides/auth/auth-anonymous
+
+Supabase Edge Functions Authentication:
+https://supabase.com/docs/guides/functions/auth
+
+Vercel com Vite:
+https://vercel.com/docs/frameworks/frontend/vite
+
+NOTA: documentação de provedores pode mudar; conferir quotas, preços, políticas de segurança e compatibilidade do plano contratado durante a implementação. O PRD não pressupõe serviços ilimitados ou gratuitos.
+
+======================================================================
+FIM DO PRD — FÓRMULA TECH v1.0
+======================================================================
