@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { pool } from '../server/db.ts';
-import { createSession, currentUser, verifyPassword } from '../server/session.ts';
-import { mutator, publicState, hash, code, clean, err, now } from '../server/core.ts';
+import { pool, assertServerConfig } from '../server/db.js';
+import { createSession, currentUser, verifyPassword } from '../server/session.js';
+import { mutator, publicState, hash, code, clean, err, now } from '../server/core.js';
 import { VERSION, CIRCUITS, fixedCost } from '../shared/game.js';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -17,6 +17,7 @@ export default async function handler(req: any, res: any) {
     catch { return json(res, 403, {ok:false,code:'NOT_AUTHORIZED',message:'Origem não autorizada.'}); }
   }
   try {
+    assertServerConfig();
     const p = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
     const action = String(p.action || '');
     const actor = await currentUser(req.headers.cookie);
@@ -131,11 +132,11 @@ export default async function handler(req: any, res: any) {
     const result=committed.rows[0].result;
     return json(res,result.code==='CONFLICT_RELOAD_REQUIRED'?409:200,result);
   } catch (e:any) {
-    const known = ['NOT_AUTHORIZED','INVALID_LOGIN','RATE_LIMITED','ROOM_NOT_FOUND','ROOM_CLOSED','INVALID_NAME','INVALID_HEAT_SIZE','INVALID_REQUEST','INVALID_ACTION','INVALID_ROOM_STATE','INSUFFICIENT_FUNDS','MISSING_SUPPLIES','INVALID_TEAM_NAME','INVALID_COLOR','ROOM_FULL'];
+    const known = ['NOT_AUTHORIZED','INVALID_LOGIN','RATE_LIMITED','ROOM_NOT_FOUND','ROOM_CLOSED','INVALID_NAME','INVALID_HEAT_SIZE','INVALID_REQUEST','INVALID_ACTION','INVALID_ROOM_STATE','INSUFFICIENT_FUNDS','MISSING_SUPPLIES','INVALID_TEAM_NAME','INVALID_COLOR','ROOM_FULL','SERVER_CONFIG_MISSING'];
     if (!known.includes(e?.code) && e?.code) console.error('Game API:', e.code);
     if (!e?.code) console.error('Game API:', e);
     const code=known.includes(e?.code)?e.code:'SERVER_ERROR';
-    return json(res,code==='NOT_AUTHORIZED'?403:code==='RATE_LIMITED'?429:code==='SERVER_ERROR'?500:400,
+    return json(res,code==='NOT_AUTHORIZED'?403:code==='RATE_LIMITED'?429:code==='SERVER_CONFIG_MISSING'?503:code==='SERVER_ERROR'?500:400,
       {ok:false,code,message:code==='SERVER_ERROR'?'Falha temporária. Tente novamente.':e.message,details:code==='SERVER_ERROR'?{}:e?.details||{}});
   }
 }

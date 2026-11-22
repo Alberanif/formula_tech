@@ -2,8 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import handler from '../api/game.ts';
-import { pool } from '../server/db.ts';
-import { passwordHash } from '../server/session.ts';
+import { pool } from '../server/db.js';
+import { passwordHash } from '../server/session.js';
 
 test('Neon: sessão, autorização, sala, inscrição e idempotência', async () => {
   const email=`smoke-${randomUUID()}@example.invalid`;

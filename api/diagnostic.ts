@@ -8,7 +8,7 @@ export default async function handler(req: any, res: any) {
   const matchingKeys = Object.keys(process.env).filter(key => /DATABASE|PEPPER|CRON|NEON/i.test(key)).sort();
 
   try {
-    await import('../server/db.ts');
+    await import('../server/db.js');
     return res.status(200).json({ok:true,environment,databaseConfigured,pepperConfigured,matchingKeys});
   } catch (error: any) {
     const message = String(error?.message || '');

@@ -1,4 +1,4 @@
-import { pool } from '../server/db.ts';
+import { pool, assertServerConfig } from '../server/db.js';
 
 export async function cleanup() {
   const rooms=await pool.query(`delete from public.game_rooms where closed_at<now()-interval '30 days'`);
@@ -15,6 +15,6 @@ export default async function handler(req:any,res:any) {
   if (req.method!=='GET') return res.status(405).json({ok:false});
   if (!process.env.CRON_SECRET || req.headers.authorization!==`Bearer ${process.env.CRON_SECRET}`)
     return res.status(401).json({ok:false});
-  try { return res.status(200).json({ok:true,data:await cleanup()}); }
+  try { assertServerConfig(); return res.status(200).json({ok:true,data:await cleanup()}); }
   catch (error) { console.error('Cleanup:',error);return res.status(500).json({ok:false}); }
 }

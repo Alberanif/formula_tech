@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
   Browser[Aluno / Professor / Projeção] -->|Cookie ou token restrito| API[API Node /api/game]
-  API -->|Valida e calcula| Rules[server/core.ts + shared/game.js]
+  API -->|Valida e calcula| Rules[server/core.js + shared/game.js]
   API -->|SQL parametrizado| Neon[(Neon PostgreSQL)]
   Neon --> Audit[Auditoria e finanças]
 ```

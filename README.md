@@ -8,7 +8,7 @@ O código e as regras estão implementados. A migração e um teste integrado de
 
 ## Rodar localmente
 
-Requer Node.js 20 ou mais recente e uma instância Neon PostgreSQL.
+Requer Node.js 24 e uma instância Neon PostgreSQL.
 
 1. Execute `npm install`.
 2. Copie `.env.example` para `.env.local` e configure `DATABASE_URL` e `ROOM_CODE_PEPPER`. O arquivo local é ignorado pelo Git. Neste workspace, a conexão fornecida já foi configurada em `.env.local`.
@@ -43,12 +43,12 @@ O `vercel.json` agenda a limpeza diária via `/api/cleanup` às 03:00 UTC. A rot
 
 ### Diagnóstico após publicar
 
-Se o frontend abrir, mas `/api/game` responder `FUNCTION_INVOCATION_FAILED`, confira em **Vercel → Project → Logs** o erro da função (o console do navegador mostra apenas o HTTP 500). `DATABASE_URL` e `ROOM_CODE_PEPPER` são verificadas ao iniciar a função; ambas devem estar no ambiente **Production** e um novo deploy é necessário depois de criá-las ou alterá-las. Sem autenticação, `GET /api/game` deve retornar HTTP 405 em JSON e `GET /api/cleanup` deve retornar HTTP 401 em JSON; HTTP 500 em ambas indica falha antes de chegar aos respectivos handlers.
+Se o frontend abrir, mas `/api/game` responder `FUNCTION_INVOCATION_FAILED`, confira em **Vercel → Project → Logs** o erro da função (o console do navegador mostra apenas o HTTP 500). `DATABASE_URL` e `ROOM_CODE_PEPPER` devem estar no ambiente **Production** e um novo deploy é necessário depois de criá-las ou alterá-las. O servidor verifica ambas a cada requisição e retorna `SERVER_CONFIG_MISSING` em JSON quando alguma falta. Sem autenticação, `GET /api/game` deve retornar HTTP 405 em JSON e `GET /api/cleanup` deve retornar HTTP 401 em JSON; HTTP 500 em ambas indica falha antes de chegar aos respectivos handlers.
 
 ## Código e documentação
 
 - `shared/game.js`: catálogo, economia e simulação determinística compartilhados.
-- `server/core.ts`: ações de sala, testes, corrida e QTE.
+- `server/core.js`: ações de sala, testes, corrida e QTE.
 - `api/game.ts`: autenticação, autorização e API HTTP; `api/cleanup.ts`: retenção.
 - `db/001_foundation.sql`: esquema PostgreSQL e commits transacionais.
 - `src/`: telas de aluno, professor e projeção.
