@@ -25,7 +25,7 @@ export const findMechanic = id => MECHANICS.find(m=>m.id===id);
 export function newTeam(id,owner,name,color,number) { return {id,owner,name,color,number,wallet:1200,pilot:null,mechanic:null,aux:false,parts:{},receipts:{},lots:[],tests:[],analysis:{},ready:false,repairAssigned:false,ledger:[{kind:'initial_credit',amount:1200,balance:1200,at:new Date().toISOString()}],reflections:{}}; }
 export function attributes(team) {
   const values=[35,35,30,30,40,40];
-  const vectors=[...SLOTS.map(s=>findPart(s,team.parts[s])?.vector).filter(Boolean),findPilot(team.pilot)?.vector];
+  const vectors=[...SLOTS.map(s=>findPart(s,team.parts[s])?.vector),findPilot(team.pilot)?.vector].filter(Boolean);
   if(team.aux) vectors.push([0,0,0,0,5,0]);
   for(const vector of vectors) vector.forEach((v,i)=>values[i]+=v);
   return Object.fromEntries(ATTR.map((a,i)=>[a,clamp(values[i],10,100)]));

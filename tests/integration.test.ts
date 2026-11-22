@@ -37,6 +37,11 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.equal(joined.body.ok,true,JSON.stringify(joined.body));
     const repeated=await request('join-room',{code:created.body.data.code,teamName:'Equipe Teste',color:'#44b6d7',requestId},studentCookie);
     assert.deepEqual(repeated.body,joined.body);
+    const teacherState=await request('state',{roomId},teacherCookie);
+    assert.equal(teacherState.statusCode,200,JSON.stringify(teacherState.body));
+    assert.equal(teacherState.body.data.roster.length,1);
+    assert.equal(teacherState.body.data.teacherTeams.length,1);
+    assert.equal(teacherState.body.data.room.teacherId,teacher);
     const state=await request('state',{roomId},studentCookie);
     assert.equal(state.body.data.roster.length,1);
     assert.equal(state.body.data.own.name,'Equipe Teste');
