@@ -42,6 +42,11 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.equal(teacherState.body.data.roster.length,1);
     assert.equal(teacherState.body.data.teacherTeams.length,1);
     assert.equal(teacherState.body.data.room.teacherId,teacher);
+    const rooms=await request('teacher-rooms',{},teacherCookie);
+    assert.equal(rooms.statusCode,200,JSON.stringify(rooms.body));
+    assert.ok(rooms.body.data.rooms.some((room:any)=>room.id===roomId&&room.teamCount===1));
+    const studentRooms=await request('teacher-rooms',{},studentCookie);
+    assert.equal(studentRooms.statusCode,403);
     const state=await request('state',{roomId},studentCookie);
     assert.equal(state.body.data.roster.length,1);
     assert.equal(state.body.data.own.name,'Equipe Teste');

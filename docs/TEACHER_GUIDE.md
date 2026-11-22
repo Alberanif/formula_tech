@@ -20,6 +20,7 @@
 
 ## Incidentes
 
+- **Painel fechado ou sala perdida no navegador:** faça login novamente. Em **Salas existentes**, escolha **Abrir sala** para retomar a atividade com as equipes já inscritas.
 - **Aluno caiu:** deve voltar no mesmo navegador, preservando a sessão anônima. A equipe e seus testes são recarregados pelo servidor. QTE perdido é neutro.
 - **Saldo insuficiente:** antes da trava, troque peça ou profissional. A troca devolve o preço pago; devolva lotes de suprimentos se necessário.
 - **Carro não fica pronto:** abra Preparação; a lista mostra peças, suprimentos, testes ou análise pendentes.

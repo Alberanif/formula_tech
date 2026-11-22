@@ -50,6 +50,14 @@ export default async function handler(req: any, res: any) {
       res.setHeader('Set-Cookie', await createSession(record.user_id, req.headers.cookie));
       return json(res, 200, {ok:true,data:{user:{id:record.user_id,role:'teacher'}}});
     }
+    if (action === 'teacher-rooms') {
+      if (actor?.role !== 'teacher') err('NOT_AUTHORIZED','Entre como professor.');
+      const result = await pool.query(`select g.id,g.name,g.created_at as "createdAt",g.data->>'phase' as phase,
+        (select count(*)::int from jsonb_each(g.data->'teams') as t where t.value->>'removed' is distinct from 'true') as "teamCount"
+        from public.game_rooms g where g.teacher_user_id=$1 and g.closed_at is null
+        order by g.created_at desc limit 20`, [user]);
+      return json(res, 200, {ok:true,data:{rooms:result.rows}});
+    }
 
     const projection = action === 'state' && Boolean(p.projectionToken);
     if (!user && !projection) err('NOT_AUTHORIZED','Entre na sala para continuar.');

@@ -36,7 +36,7 @@ test('temporary state failure after a student joins keeps the teacher in the roo
     setTimeout: () => 0,
     setInterval: () => 0,
   };
-  runInNewContext(source + '\nglobalThis.testClient = { ui, load, render, setTeacher(value, snapshot) { user = value; state = snapshot; ui.screen = "teacher"; } };', context);
+  runInNewContext(source + '\nglobalThis.testClient = { ui, load, render, openRoom, setTeacher(value, snapshot) { user = value; state = snapshot; ui.screen = "teacher"; }, showCreate() { state = null; ui.screen = "create"; } };', context);
   context.testClient.setTeacher({ id: teacherId, role: 'teacher' }, publicState(room, teacherId));
   context.testClient.render();
   assert.match(app.innerHTML, /Equipe Teste/);
@@ -54,4 +54,13 @@ test('temporary state failure after a student joins keeps the teacher in the roo
   assert.equal(context.testClient.ui.connectionError, '');
   assert.equal(context.testClient.ui.roomId, roomId);
   assert.doesNotMatch(app.innerHTML, /Tentar novamente/);
+
+  context.testClient.ui.teacherRooms = [{ id: roomId, name: room.name, phase: 'LOBBY', teamCount: 1, createdAt: new Date().toISOString() }];
+  context.testClient.showCreate();
+  context.testClient.render();
+  assert.match(app.innerHTML, /Salas existentes/);
+  assert.match(app.innerHTML, /Abrir sala/);
+  await context.testClient.openRoom(roomId);
+  assert.match(app.innerHTML, /Equipe Teste/);
+  assert.equal(storage.getItem('ft_room'), roomId);
 });
