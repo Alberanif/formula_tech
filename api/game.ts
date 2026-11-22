@@ -13,7 +13,7 @@ const knownErrors = new Set([
   'MISSING_SUPPLIES','NOT_AUTHORIZED','PART_REQUIREMENT_NOT_MET','PURCHASE_QUOTE_EXPIRED',
   'QTE_ALREADY_SUBMITTED','QTE_NOT_ELIGIBLE','QTE_NOT_OPEN','RACE_IN_PROGRESS','RATE_LIMITED',
   'ROOM_CLOSED','ROOM_FULL','ROOM_NOT_FOUND','SERVER_CONFIG_MISSING','STOCK_LIMIT',
-  'TEAM_INCOMPLETE','TEAM_NOT_FOUND','TEAMS_NOT_READY',
+  'TEAM_INCOMPLETE','TEAM_NOT_FOUND','TEAM_REMOVED','TEAMS_NOT_READY',
 ]);
 const json = (res: any, status: number, body: any) => res.status(status).json(body);
 
@@ -108,7 +108,10 @@ export default async function handler(req: any, res: any) {
     }
     const isTeacher=room.teacher_user_id===user;
     const member=Object.values(room.data.teams).some((t:any)=>t.owner===user&&!t.removed);
-    if (action!=='join-room' && !isTeacher && !member) err('NOT_AUTHORIZED','Você não pertence a esta sala.');
+    if (action!=='join-room' && !isTeacher && !member) {
+      const removed=Object.values(room.data.teams).some((t:any)=>t.owner===user&&t.removed);
+      err(removed?'TEAM_REMOVED':'NOT_AUTHORIZED',removed?'Sua escuderia foi excluída desta sala pelo professor.':'Você não pertence a esta sala.');
+    }
     if (member) await pool.query(`insert into public.game_presence(room_id,user_id,last_seen_at) values($1,$2,now())
       on conflict(room_id,user_id) do update set last_seen_at=now()`,[room.id,user]);
     if (action==='state') return json(res,200,{ok:true,data:publicState(room,user)});
@@ -153,7 +156,7 @@ export default async function handler(req: any, res: any) {
     if (!knownErrors.has(e?.code) && e?.code) console.error('Game API:', e.code);
     if (!e?.code) console.error('Game API:', e);
     const code=knownErrors.has(e?.code)?e.code:'SERVER_ERROR';
-    return json(res,code==='NOT_AUTHORIZED'?403:code==='RATE_LIMITED'?429:code==='SERVER_CONFIG_MISSING'?503:code==='SERVER_ERROR'?500:400,
+    return json(res,['NOT_AUTHORIZED','TEAM_REMOVED'].includes(code)?403:code==='RATE_LIMITED'?429:code==='SERVER_CONFIG_MISSING'?503:code==='SERVER_ERROR'?500:400,
       {ok:false,code,message:code==='SERVER_ERROR'?'Falha temporária. Tente novamente.':e.message,details:code==='SERVER_ERROR'?{}:e?.details||{}});
   }
 }

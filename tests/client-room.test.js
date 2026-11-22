@@ -36,10 +36,12 @@ test('temporary state failure after a student joins keeps the teacher in the roo
     setTimeout: () => 0,
     setInterval: () => 0,
   };
-  runInNewContext(source + '\nglobalThis.testClient = { ui, load, render, openRoom, setTeacher(value, snapshot) { user = value; state = snapshot; ui.screen = "teacher"; }, showCreate() { state = null; ui.screen = "create"; } };', context);
+  runInNewContext(source + '\nglobalThis.testClient = { ui, load, render, openRoom, setTeacher(value, snapshot) { user = value; state = snapshot; ui.screen = "teacher"; }, setStudent(value, snapshot) { user = value; state = snapshot; ui.screen = "overview"; }, showCreate() { state = null; ui.screen = "create"; } };', context);
   context.testClient.setTeacher({ id: teacherId, role: 'teacher' }, publicState(room, teacherId));
   context.testClient.render();
   assert.match(app.innerHTML, /Equipe Teste/);
+  assert.match(app.innerHTML, /<th>Ações<\/th>/);
+  assert.match(app.innerHTML, /<td class="team-action-cell"><button[^>]*data-action="remove-team"[^>]*data-team="team-id"[^>]*>Excluir<\/button><\/td>/);
 
   await context.testClient.load();
 
@@ -63,4 +65,12 @@ test('temporary state failure after a student joins keeps the teacher in the roo
   await context.testClient.openRoom(roomId);
   assert.match(app.innerHTML, /Equipe Teste/);
   assert.equal(storage.getItem('ft_room'), roomId);
+
+  context.testClient.setStudent({ id: 'student-id', role: 'student' }, publicState(room, 'student-id'));
+  responseBody = { ok: false, code: 'TEAM_REMOVED', message: 'Sua escuderia foi excluída desta sala pelo professor.' };
+  await context.testClient.load();
+  assert.equal(context.testClient.ui.roomId, null);
+  assert.equal(storage.getItem('ft_room'), null);
+  assert.equal(context.testClient.ui.screen, 'welcome');
+  assert.match(app.innerHTML, /Sua escuderia foi excluída/);
 });

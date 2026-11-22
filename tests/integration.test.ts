@@ -60,8 +60,24 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.equal(projection.body.data.own,undefined);
     const blocked=await request('rotate-access',{roomId,kind:'code'},studentCookie);
     assert.equal(blocked.statusCode,403);
+    const studentRemoval=await request('remove-team',{roomId,teamId:joined.body.data.teamId,requestId:randomUUID()},studentCookie);
+    assert.equal(studentRemoval.statusCode,403);
+    const removed=await request('remove-team',{roomId,teamId:joined.body.data.teamId,requestId:randomUUID()},teacherCookie);
+    assert.equal(removed.statusCode,200,JSON.stringify(removed.body));
+    const afterRemoval=await request('state',{roomId},teacherCookie);
+    assert.equal(afterRemoval.body.data.roster.length,0);
+    assert.equal(afterRemoval.body.data.teacherTeams[0].removed,true);
+    const formerMember=await request('state',{roomId},studentCookie);
+    assert.equal(formerMember.statusCode,403);
+    assert.equal(formerMember.body.code,'TEAM_REMOVED');
+    const formerRejoin=await request('join-room',{code:created.body.data.code,teamName:'Outra Equipe',color:'#44b6d7',requestId:randomUUID()},studentCookie);
+    assert.equal(formerRejoin.statusCode,403);
+    assert.equal(formerRejoin.body.code,'TEAM_REMOVED');
+    const replacement=await request('join-room',{code:created.body.data.code,teamName:'Equipe Teste',color:'#44b6d7',requestId:randomUUID()},secondCookie);
+    assert.equal(replacement.statusCode,200,JSON.stringify(replacement.body));
+    assert.notEqual(replacement.body.data.teamId,joined.body.data.teamId);
     const count=await pool.query('select count(*)::int as total from public.game_audit where room_id=$1',[roomId]);
-    assert.equal(count.rows[0].total,1);
+    assert.equal(count.rows[0].total,3);
   } finally {
     if (roomId) await pool.query('delete from public.game_rooms where id=$1',[roomId]);
     if (secondStudent) await pool.query('delete from public.app_users where id=$1',[secondStudent]);

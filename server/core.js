@@ -162,7 +162,7 @@ function mutator(room, data, action, p, user) {
     if (!["LOBBY", "TEAM_BUILD", "TESTING"].includes(data.phase)) err("ROOM_CLOSED", "Esta sala n\xE3o aceita novas equipes.");
     const existing = Object.values(data.teams).find((t) => t.owner === user);
     if (existing) {
-      if (existing.removed) err("NOT_AUTHORIZED", "Esta equipe foi removida pelo professor.");
+      if (existing.removed) err("TEAM_REMOVED", "Sua escuderia foi excluída desta sala pelo professor.");
       return { data, result: { teamId: existing.id, roomId: room.id, reconnected: true }, audit, finances };
     }
     if (Object.values(data.teams).filter((t) => !t.removed).length >= data.maxPlayers) err("ROOM_FULL", "A sala est\xE1 cheia.");

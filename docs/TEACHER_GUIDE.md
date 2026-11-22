@@ -22,6 +22,7 @@
 
 - **Painel fechado ou sala perdida no navegador:** faça login novamente. Em **Salas existentes**, escolha **Abrir sala** para retomar a atividade com as equipes já inscritas.
 - **Aluno caiu:** deve voltar no mesmo navegador, preservando a sessão anônima. A equipe e seus testes são recarregados pelo servidor. QTE perdido é neutro.
+- **Escuderia inscrita por engano:** em **Painel → Escuderias**, use **Excluir** na linha da equipe e confirme pelo nome. A ação está disponível até o fim dos testes, antes de **Travar equipes**. A vaga e o nome ficam livres para outra inscrição; o progresso anterior permanece no histórico, e a inscrição excluída perde acesso à sala.
 - **Saldo insuficiente:** antes da trava, troque peça ou profissional. A troca devolve o preço pago; devolva lotes de suprimentos se necessário.
 - **Carro não fica pronto:** abra Preparação; a lista mostra peças, suprimentos, testes ou análise pendentes.
 - **Corrida precisa parar:** use Pausar. Um QTE aberto é cancelado sem bônus; Retomar continua a mesma bateria.
