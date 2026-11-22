@@ -10,7 +10,7 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
   const password=randomBytes(20).toString('hex');
   const salt=randomBytes(32).toString('hex');
   const teacher=(await pool.query(`insert into public.app_users(role) values('teacher') returning id`)).rows[0].id;
-  let student: string|undefined, roomId: string|undefined;
+  let student: string|undefined, secondStudent: string|undefined, roomId: string|undefined;
   const request=async (action:string, payload:any={}, cookie='') => {
     const headers:any={host:'localhost:8787',origin:'http://localhost:8787',cookie};
     const req:any={method:'POST',headers,body:{action,...payload}};
@@ -37,6 +37,12 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.equal(joined.body.ok,true,JSON.stringify(joined.body));
     const repeated=await request('join-room',{code:created.body.data.code,teamName:'Equipe Teste',color:'#44b6d7',requestId},studentCookie);
     assert.deepEqual(repeated.body,joined.body);
+    const secondAuth=await request('student-auth');
+    secondStudent=secondAuth.body.data.user.id;
+    const secondCookie=secondAuth.headers['Set-Cookie'].split(';')[0];
+    const duplicate=await request('join-room',{code:created.body.data.code,teamName:'Equipe Teste',color:'#44b6d7',requestId:randomUUID()},secondCookie);
+    assert.equal(duplicate.statusCode,400,JSON.stringify(duplicate.body));
+    assert.equal(duplicate.body.code,'DUPLICATE_NAME');
     const teacherState=await request('state',{roomId},teacherCookie);
     assert.equal(teacherState.statusCode,200,JSON.stringify(teacherState.body));
     assert.equal(teacherState.body.data.roster.length,1);
@@ -58,6 +64,7 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.equal(count.rows[0].total,1);
   } finally {
     if (roomId) await pool.query('delete from public.game_rooms where id=$1',[roomId]);
+    if (secondStudent) await pool.query('delete from public.app_users where id=$1',[secondStudent]);
     if (student) await pool.query('delete from public.app_users where id=$1',[student]);
     await pool.query('delete from public.app_users where id=$1',[teacher]);
     await pool.end();

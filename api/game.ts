@@ -5,6 +5,16 @@ import { mutator, publicState, hash, code, clean, err, now } from '../server/cor
 import { VERSION, CIRCUITS, fixedCost } from '../shared/game.js';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const knownErrors = new Set([
+  'ANALYSIS_INCOMPLETE','DUPLICATE_NAME','HEAT_NOT_FOUND','INSUFFICIENT_FUNDS',
+  'INVALID_ACTION','INVALID_ANALYSIS','INVALID_ASSIGNMENTS','INVALID_AWARD','INVALID_COLOR',
+  'INVALID_HEAT_SIZE','INVALID_ITEM','INVALID_LOGIN','INVALID_MARKET_PHASE','INVALID_NAME',
+  'INVALID_QUANTITY','INVALID_RACE_STATE','INVALID_REQUEST','INVALID_ROOM_STATE','INVALID_TEAM_NAME',
+  'MISSING_SUPPLIES','NOT_AUTHORIZED','PART_REQUIREMENT_NOT_MET','PURCHASE_QUOTE_EXPIRED',
+  'QTE_ALREADY_SUBMITTED','QTE_NOT_ELIGIBLE','QTE_NOT_OPEN','RACE_IN_PROGRESS','RATE_LIMITED',
+  'ROOM_CLOSED','ROOM_FULL','ROOM_NOT_FOUND','SERVER_CONFIG_MISSING','STOCK_LIMIT',
+  'TEAM_INCOMPLETE','TEAM_NOT_FOUND','TEAMS_NOT_READY',
+]);
 const json = (res: any, status: number, body: any) => res.status(status).json(body);
 
 export default async function handler(req: any, res: any) {
@@ -140,10 +150,9 @@ export default async function handler(req: any, res: any) {
     const result=committed.rows[0].result;
     return json(res,result.code==='CONFLICT_RELOAD_REQUIRED'?409:200,result);
   } catch (e:any) {
-    const known = ['NOT_AUTHORIZED','INVALID_LOGIN','RATE_LIMITED','ROOM_NOT_FOUND','ROOM_CLOSED','INVALID_NAME','INVALID_HEAT_SIZE','INVALID_REQUEST','INVALID_ACTION','INVALID_ROOM_STATE','INSUFFICIENT_FUNDS','MISSING_SUPPLIES','INVALID_TEAM_NAME','INVALID_COLOR','ROOM_FULL','SERVER_CONFIG_MISSING'];
-    if (!known.includes(e?.code) && e?.code) console.error('Game API:', e.code);
+    if (!knownErrors.has(e?.code) && e?.code) console.error('Game API:', e.code);
     if (!e?.code) console.error('Game API:', e);
-    const code=known.includes(e?.code)?e.code:'SERVER_ERROR';
+    const code=knownErrors.has(e?.code)?e.code:'SERVER_ERROR';
     return json(res,code==='NOT_AUTHORIZED'?403:code==='RATE_LIMITED'?429:code==='SERVER_CONFIG_MISSING'?503:code==='SERVER_ERROR'?500:400,
       {ok:false,code,message:code==='SERVER_ERROR'?'Falha temporária. Tente novamente.':e.message,details:code==='SERVER_ERROR'?{}:e?.details||{}});
   }
