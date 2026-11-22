@@ -41,6 +41,10 @@ O repositório está preparado para ser importado na Vercel, mas a publicação 
 
 O `vercel.json` agenda a limpeza diária via `/api/cleanup` às 03:00 UTC. A rota aceita somente a autenticação por `CRON_SECRET`. Ao conectar o GitHub à Vercel, novos pushes na branch principal poderão gerar deploys automáticos. [Importação Git](https://vercel.com/docs/git) · [Configuração Vercel](https://vercel.com/docs/project-configuration/vercel-json) · [Cron Jobs](https://vercel.com/docs/cron-jobs).
 
+### Diagnóstico após publicar
+
+Se o frontend abrir, mas `/api/game` responder `FUNCTION_INVOCATION_FAILED`, confira em **Vercel → Project → Logs** o erro da função (o console do navegador mostra apenas o HTTP 500). `DATABASE_URL` e `ROOM_CODE_PEPPER` são verificadas ao iniciar a função; ambas devem estar no ambiente **Production** e um novo deploy é necessário depois de criá-las ou alterá-las. Sem autenticação, `GET /api/game` deve retornar HTTP 405 em JSON e `GET /api/cleanup` deve retornar HTTP 401 em JSON; HTTP 500 em ambas indica falha antes de chegar aos respectivos handlers.
+
 ## Código e documentação
 
 - `shared/game.js`: catálogo, economia e simulação determinística compartilhados.
