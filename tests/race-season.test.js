@@ -49,9 +49,14 @@ test('incidents, prizes and purchases are applied once between races', () => {
   heat.incidents = [{ fraction: .23, teamId: 'a', type: 'spin', applied: false }, { fraction: .51, teamId: 'b', type: 'crash', applied: false }];
   data.qteEnabled = false;
   heat.startAt = Date.now() - heat.duration - 100;
+  mutator(room, data, 'sync-race', { heatId: heat.id, activeTeamIds: ['a', 'b'] }, 'student-a');
+  assert.equal(heat.status, 'running');
+  assert.ok(heat.duration > heat.clockDuration);
+  heat.startAt = Date.now() - heat.duration - 100;
   const result = mutator(room, data, 'sync-race', { heatId: heat.id, activeTeamIds: ['a', 'b'] }, 'student-a');
   assert.equal(heat.status, 'finished');
   assert.equal(heat.participants.find(p => p.teamId === 'a').incidentPenalty, 1300);
+  assert.ok(heat.participants.find(p => p.teamId === 'a').incidentStopAt > 0);
   assert.equal(heat.participants.find(p => p.teamId === 'b').dnf, true);
   assert.equal(heat.prizes.a, 300);
   assert.equal(heat.prizes.b, 60);
@@ -94,6 +99,15 @@ test('teacher can create configured rounds before the final', () => {
   assert.equal(data.heats.at(-1).type, 'final');
 });
 
+test('one-round room can show results without creating a final', () => {
+  const { room, data, teacher } = fixture(1, 5);
+  mutator(room, data, 'build-heats', {}, teacher);
+  assert.equal(data.heats[0].laps, 5);
+  data.heats[0].status = 'finished';
+  assert.equal(mutator(room, data, 'room-transition', { phase: 'RESULTS' }, teacher).result.phase, 'RESULTS');
+  assert.throws(() => mutator(room, data, 'build-final', {}, teacher), e => e.code === 'INVALID_ROOM_STATE');
+});
+
 test('race screen exposes lap, sector, incidents, standings and a stable reaction control', () => {
   const { room, data, teacher } = fixture(2, 4);
   mutator(room, data, 'build-heats', {}, teacher);
@@ -108,6 +122,8 @@ test('race screen exposes lap, sector, incidents, standings and a stable reactio
   assert.match(html, /SETOR 01/);
   assert.equal(heat.participants[0].sectorTimes.length, 24);
   assert.ok(carProgress(snapshot.heats[0].participants[0], 0) <= carProgress(snapshot.heats[0].participants[0], 2000));
+  const spinning = { sectorTimes: Array(6).fill(1000), incidentStopAt: 2000, incidentPenalty: 1300 };
+  assert.equal(carProgress(spinning, 2500), carProgress(spinning, 2000));
   heat.event = { id: 'event-id', type: 'reaction', checkpoint: 1, front: 'a', behind: 'b', opensAt: Date.now() + 500, closesAt: Date.now() + 4500, status: 'open', inputs: {} };
   const duelState = publicState(room, 'student-a');
   const duel = raceView({ state: duelState, heat: duelState.heats[0], serverOffset: 0, esc: x => String(x), sec: x => `${x} s`, button: () => '', canUpgrade: () => false });

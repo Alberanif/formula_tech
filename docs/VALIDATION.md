@@ -2,7 +2,7 @@
 
 ## Verificado
 
-- `npm test`: 18 testes das regras, catálogo, desgaste, economia, prontidão, rodadas, incidentes, prêmios, duelos de reação e balanceamento.
+- `npm test`: 19 testes das regras, catálogo, desgaste, economia, prontidão, rodadas, incidentes, prêmios, duelos de reação e balanceamento.
 - Enumeração de 1.312 configurações financeiramente viáveis em M0, reproduzindo os líderes e tempos da seção 36 do PRD.
 - `npm run build`: frontend gerado sem erro.
 - `npm run db:migrate`: esquema e funções aplicados no Neon configurado.

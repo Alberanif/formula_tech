@@ -81,7 +81,7 @@ export default async function handler(req: any, res: any) {
       if (!Number.isInteger(maxPlayers) || !Number.isInteger(carsPerHeat) || maxPlayers < 1 || maxPlayers > 20 || carsPerHeat < 1 || carsPerHeat > 5 || Math.ceil(maxPlayers/carsPerHeat)>5) err('INVALID_HEAT_SIZE','Use 1 a 20 equipes, 1 a 5 carros por bateria e no máximo cinco classificatórias.');
       const raceCount = p.raceCount === undefined ? 2 : Number(p.raceCount);
       const lapsPerRace = p.lapsPerRace === undefined ? 3 : Number(p.lapsPerRace);
-      if (!Number.isInteger(raceCount) || raceCount < 1 || raceCount > 5 || !Number.isInteger(lapsPerRace) || lapsPerRace < 1 || lapsPerRace > 5) err('INVALID_RACE_SETUP','Escolha de 1 a 5 corridas por equipe e de 1 a 5 voltas por corrida.');
+      if (!Number.isInteger(raceCount) || raceCount < 1 || raceCount > 5 || !Number.isInteger(lapsPerRace) || lapsPerRace < 1 || lapsPerRace > 5) err('INVALID_RACE_SETUP','Escolha de 1 a 5 rodadas e de 1 a 5 voltas por corrida.');
       const roomCode=code(),projectionToken=code(16);
       const data={phase:'LOBBY',circuitId,mode:p.mode==='extended'?'extended':'standard',market:'M0',qteEnabled:p.qteEnabled!==false,maxPlayers,carsPerHeat,raceCount,lapsPerRace,teams:{},heats:[],events:[],awards:{},configVersion:VERSION};
       const result=await pool.query(`insert into public.game_rooms(teacher_user_id,code_hash,code_display,projection_hash,name,data)

@@ -4,7 +4,7 @@ import { raceView, raceElapsed, carProgress } from './race-view.js';
 
 const app=document.getElementById('app');
 const q=new URLSearchParams(location.search);
-const ui={roomId:q.get('room')||localStorage.getItem('ft_room'),projectionToken:q.get('projection'),screen:'welcome',slot:'engine',testView:'summary',toast:'',connectionError:'',teacherRooms:[],busy:false,testDraft:{},reduceMotion:localStorage.getItem('ft_reduce')==='1',projectionRefresh:sessionStorage.getItem('ft_projection')};
+const ui={roomId:q.get('room')||localStorage.getItem('ft_room'),projectionToken:q.get('projection'),screen:'welcome',slot:'engine',testView:'summary',resultHeatId:null,toast:'',connectionError:'',teacherRooms:[],busy:false,testDraft:{},reduceMotion:localStorage.getItem('ft_reduce')==='1',projectionRefresh:sessionStorage.getItem('ft_projection')};
 ui.demo={pilot:'PILOT_1',mechanic:'MECH_1',parts:Object.fromEntries(SLOTS.map(s=>[s,PARTS[s][0].id]))};
 let state=null,user=null,poll=null,polling=false,serverOffset=0,qteQueue=Promise.resolve();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -86,11 +86,12 @@ function activeHeat(){const active=state.heats.find(h=>['countdown','running','q
 function race(){return raceView({state,heat:activeHeat(),serverOffset,esc,sec,button,canUpgrade});}
 function results(){
   const completed=state.heats.filter(h=>h.status==='finished');
-  const h=completed.findLast(x=>x.type==='final')||completed.at(-1);
+  const h=completed.find(x=>x.id===ui.resultHeatId)||completed.findLast(x=>x.type==='final')||completed.findLast(x=>x.participants.some(p=>p.teamId===state.own?.id))||completed.at(-1);
   if(!h)return `<section class="content narrow"><div class="eyebrow">Resultados</div><h1>A bandeirada ainda não caiu.</h1><p>Os tempos oficiais aparecem depois de cada bateria.</p></section>`;
   const finishers=h.participants.filter(p=>!p.dnf);
   const myRaces=state.own?completed.filter(x=>x.participants.some(p=>p.teamId===state.own.id)):[];
   return `<section class="content"><div class="page-head"><div><div class="eyebrow">Resultado oficial</div><h1>${h.type==='final'?'Pódio da grande final':`Rodada ${h.round} · Bateria ${h.number}`}</h1><p>Tempos, incidentes, duelos e prêmios confirmados pelo servidor.</p></div></div>
+    <label class="result-picker">Escolha uma bateria<select data-result-select>${completed.map(x=>`<option value="${x.id}" ${x.id===h.id?'selected':''}>${x.type==='final'?'Grande final':`Rodada ${x.round} · Bateria ${x.number}`}</option>`).join('')}</select></label>
     <div class="podium">${finishers.slice(0,3).map((p,i)=>`<div class="podium-place p${i+1}"><span>${i+1}º</span><strong>${esc(p.name)}</strong><small>${sec(p.final/1000)}</small></div>`).join('')}</div>
     <article class="panel"><h2>Classificação completa</h2><div class="table-wrap"><table><thead><tr><th>Posição</th><th>Escuderia</th><th>Tempo base</th><th>Eventos</th><th>Resultado</th><th>Prêmio</th></tr></thead><tbody>${h.participants.map(p=>`<tr><td>${p.rank}º</td><td><span class="team-dot" style="background:${p.color}"></span>${esc(p.name)}</td><td>${sec(p.base/1000)}</td><td>${p.adjust>=0?'+':''}${sec(p.adjust/1000)}</td><td>${p.dnf?'FORA':sec(p.final/1000)}</td><td><b>+ ${h.prizes[p.teamId]||0} Cr</b></td></tr>`).join('')}</tbody></table></div></article>
     ${state.own?`<article class="panel"><h2>Seus prêmios</h2><p>${myRaces.map(x=>`${x.type==='final'?'Final':`Rodada ${x.round}`}: +${x.prizes[state.own.id]||0} Cr`).join(' · ')||'Aguardando corrida'} · Saldo atual: <b>${cr(state.own.wallet)}</b></p>${canUpgrade()?`<div class="teacher-actions">${button('Melhorar o carro','nav','data-screen="garage" class="primary"')}${button('Comprar suprimentos','nav','data-screen="market"')}</div>`:''}</article>`:''}
@@ -178,7 +179,7 @@ app.addEventListener('submit',async e=>{e.preventDefault();const f=e.target,valu
 });
 function captureTestDraft(e){if(!['hypothesis-form','conclusion-form'].includes(e.target.closest('form')?.id))return;if(['target','change','reason','evaluation','evidence'].includes(e.target.name))ui.testDraft[e.target.name]=e.target.value;}
 app.addEventListener('input',captureTestDraft);
-app.addEventListener('change',e=>{captureTestDraft(e);const field=e.target.dataset.demo;if(!field)return;if(field==='pilot'||field==='mechanic')ui.demo[field]=e.target.value;else if(SLOTS.includes(field))ui.demo.parts[field]=e.target.value;render();});
+app.addEventListener('change',e=>{captureTestDraft(e);if(e.target.hasAttribute?.('data-result-select')){ui.resultHeatId=e.target.value;render();return;}const field=e.target.dataset.demo;if(!field)return;if(field==='pilot'||field==='mechanic')ui.demo[field]=e.target.value;else if(SLOTS.includes(field))ui.demo.parts[field]=e.target.value;render();});
 function answerQte(key){const h=activeHeat(),e=h?.event,now=Date.now()+serverOffset;if(!e||e.status!=='open'||![e.front,e.behind].includes(state.own?.id)||now<e.opensAt||now>e.closesAt||ui.qteSent===e.id)return;ui.qteSent=e.id;const button=app.querySelector('.qte-button'),hint=app.querySelector('#qte-hint');if(button){button.disabled=true;button.textContent='ENVIANDO…';}if(hint)hint.textContent='Registrando sua reação…';qteQueue=qteQueue.then(async()=>{try{const result=await call('submit-qte',{roomId:ui.roomId,eventId:e.id,key},id());if(button)button.textContent='RESPOSTA ENVIADA';if(hint)hint.textContent=result.input?.valid?'Reação registrada. Aguarde o adversário.':'Resposta fora da janela válida.';await load();}catch(x){if(x.code!=='QTE_ALREADY_SUBMITTED'&&x.code!=='QTE_NOT_OPEN')ui.qteSent=null;toast(x.message);}});}
 document.addEventListener('keydown',e=>{if(!state||!['race','projection'].includes(ui.screen))return;const key=e.code==='Space'?'SPACE':e.key.toUpperCase();if(!['SPACE','A','D'].includes(key))return;if(document.activeElement?.matches('input,textarea,select'))return;e.preventDefault();if(e.repeat)return;answerQte(key);});
 async function heartbeat(){if(!state||!ui.roomId||polling)return;polling=true;try{const h=activeHeat();if(h&&['countdown','running','qte_paused'].includes(h.status)&&!ui.projectionToken)await call('sync-race',{roomId:ui.roomId,heatId:h.id},id()).catch(()=>{});await load();}catch{}finally{polling=false;}}

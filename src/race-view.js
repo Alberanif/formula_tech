@@ -9,6 +9,7 @@ export function raceElapsed(heat, serverOffset = 0) {
 export function carProgress(participant, elapsed) {
   const sectors = participant.sectorTimes || [];
   if (!sectors.length) return 0;
+  if (participant.incidentStopAt != null && elapsed >= participant.incidentStopAt) elapsed = Math.max(participant.incidentStopAt, elapsed - (participant.incidentPenalty || 0));
   let remaining = elapsed;
   for (let i = 0; i < sectors.length; i++) {
     const duration = Math.max(1, sectors[i]);
