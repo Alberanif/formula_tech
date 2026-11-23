@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 import * as game from '../shared/game.js';
 import { publicState } from '../server/core.js';
 
-test('temporary state failure after a student joins keeps the teacher in the room', async () => {
+test('teacher room survives polling and test conclusion unlocks after the second test', async () => {
   const teacherId = 'teacher-id';
   const roomId = 'room-id';
   const team = game.newTeam('team-id', 'student-id', 'Equipe Teste', '#44b6d7', 1);
@@ -65,6 +65,28 @@ test('temporary state failure after a student joins keeps the teacher in the roo
   await context.testClient.openRoom(roomId);
   assert.match(app.innerHTML, /Equipe Teste/);
   assert.equal(storage.getItem('ft_room'), roomId);
+
+  room.data.phase = 'TESTING';
+  team.pilot = 'PILOT_1';
+  team.mechanic = 'MECH_1';
+  team.parts = Object.fromEntries(game.SLOTS.map((slot, index) => [slot, ['MOTOR_ECO', 'CHASSIS_REINFORCED', 'TIRE_STANDARD', 'SUSP_BASIC', 'AERO_LOWDRAG', 'BRAKE_BASIC'][index]]));
+  team.analysis = { target: 'C', change: 'manter o projeto', reason: 'confirmar o tempo' };
+  const first = { number: 1, snapshot: { pilot: team.pilot, mechanic: team.mechanic, aux: false, parts: { ...team.parts } }, result: game.simulate(team, 'balance'), fixedCost: game.fixedCost(team) };
+  team.tests = [first];
+  context.testClient.setStudent({ id: 'student-id', role: 'student' }, publicState(room, 'student-id'));
+  context.testClient.ui.screen = 'tests';
+  context.testClient.render();
+  assert.match(app.innerHTML, /A conclusão será liberada após o segundo teste/);
+  assert.match(app.innerHTML.split('<form id="conclusion-form">')[1].split('</form>')[0], /disabled/);
+
+  team.tests.push({ ...first, number: 2 });
+  context.testClient.setStudent({ id: 'student-id', role: 'student' }, publicState(room, 'student-id'));
+  context.testClient.ui.screen = 'tests';
+  context.testClient.render();
+  assert.match(app.innerHTML, /Segundo teste concluído. Registre a conclusão com uma métrica/);
+  const conclusion = app.innerHTML.split('<form id="conclusion-form">')[1].split('</form>')[0];
+  assert.doesNotMatch(conclusion, /disabled/);
+  assert.match(conclusion, /Sem diferença/);
 
   context.testClient.setStudent({ id: 'student-id', role: 'student' }, publicState(room, 'student-id'));
   responseBody = { ok: false, code: 'TEAM_REMOVED', message: 'Sua escuderia foi excluída desta sala pelo professor.' };

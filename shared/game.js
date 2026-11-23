@@ -67,7 +67,6 @@ export function checklist(team) {
   const n=supplyNeeds(team);for(const k of ['fuel','tires'])if(inventory(team,k)<n[k])missing.push('Compre '+(n[k]-inventory(team,k))+' '+SUPPLIES[k].name.toLowerCase());
   if(team.tests.length<2)missing.push('Faça dois testes');
   if(!team.analysis.target||!team.analysis.change||!team.analysis.reason)missing.push('Registre a hipótese');
-  if(team.tests.length>=2&&!changedItems(team.tests[0].snapshot,team.tests[1].snapshot).length)missing.push('Altere o projeto entre os dois primeiros testes');
   if(!team.analysis.evaluation||!team.analysis.evidence)missing.push('Registre a conclusão com uma métrica');
   return missing;
 }

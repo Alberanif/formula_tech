@@ -2,7 +2,7 @@
 
 ## Intenção e estrutura
 
-O PRD descreve uma aula com jogo competitivo, mas o núcleo pedagógico é o ciclo **prever → montar → medir → alterar → comparar → justificar**. A economia e a corrida criam consequências para decisões técnicas. A regra de prontidão precisa depender dos dois testes e de uma mudança real, não apenas de ter um carro completo.
+O PRD descreve uma aula com jogo competitivo, mas o núcleo pedagógico é o ciclo **prever → montar → medir → comparar → justificar**. A economia e a corrida criam consequências para decisões técnicas. A regra de prontidão depende de dois testes, hipótese e conclusão com métrica. Por solicitação posterior do professor, a alteração do projeto entre os testes passou a ser opcional, permitindo confirmar a reprodutibilidade do mesmo carro.
 
 O documento traz regras numéricas suficientemente específicas para implementação direta: 18 peças, 3 pilotos, 3 mecânicos, 6 atributos, três pistas, 1.200 Cr, três fases de mercado, três voltas e fórmulas de setor e desgaste. Essas regras foram centralizadas em `shared/game.js` e versionadas em `ft-1.0.0`.
 
@@ -16,7 +16,7 @@ O documento traz regras numéricas suficientemente específicas para implementa�
 
 ## Requisitos cobertos no código
 
-Montagem de equipe e seis peças; mecânico como pré-requisito; reembolso do valor pago nas trocas; estoque por lote; M0/M1/M2; dois testes grátis e próximos pagos; engine determinística e logs por setor; hipótese, alteração, conclusão e checklist; salas privadas; baterias e final; consumo da classificatória e suprimentos básicos da final; largada futura; resultado oficial; QTE de reação, precisão e sequência com horários do servidor; pausa, projeção e exportação CSV.
+Montagem de equipe e seis peças; mecânico como pré-requisito; reembolso do valor pago nas trocas; estoque por lote; M0/M1/M2; dois testes grátis e próximos pagos; engine determinística e logs por setor; hipótese, alteração opcional, conclusão e checklist; salas privadas; baterias e final; consumo da classificatória e suprimentos básicos da final; largada futura; resultado oficial; QTE de reação, precisão e sequência com horários do servidor; pausa, projeção e exportação CSV.
 
 ## Pontos que exigem validação antes de uso
 

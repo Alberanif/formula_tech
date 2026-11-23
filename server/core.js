@@ -263,7 +263,6 @@ function mutator(room, data, action, p, user) {
     const t = getTeam(data, user);
     if (!completeCar(t)) err("TEAM_INCOMPLETE", "Complete o carro e a equipe antes de testar.");
     if (t.tests.length === 1 && (!t.analysis.target || !t.analysis.change || !t.analysis.reason)) err("ANALYSIS_INCOMPLETE", "Registre a hip\xF3tese antes do segundo teste.");
-    if (t.tests.length === 1 && JSON.stringify(snapshot(t)) === JSON.stringify(t.tests[0].snapshot)) err("ANALYSIS_INCOMPLETE", "Altere ao menos uma escolha antes do segundo teste.");
     const old = t.wallet, fee = t.tests.length >= 2 ? 12 : 0;
     if (fee) spend(t, fee, "test_fee");
     const resultSim = simulate(t, data.circuitId, 1, false), test = { id: uid(), number: t.tests.length + 1, at: (/* @__PURE__ */ new Date()).toISOString(), snapshot: snapshot(t), fixedCost: fixedCost(t), result: resultSim, fee };
@@ -276,14 +275,14 @@ function mutator(room, data, action, p, user) {
     if (data.phase === "RESULTS" && p.keep === void 0) err("INVALID_ROOM_STATE", "Ap\xF3s a corrida, apenas a reflex\xE3o final pode mudar.");
     if (p.target !== void 0) {
       if (t.tests.length < 1) err("ANALYSIS_INCOMPLETE", "Fa\xE7a o primeiro teste.");
-      if (!["R", "C", "M"].includes(p.target) || !clean(p.change, 80) || !clean(p.reason, 160)) err("INVALID_ANALYSIS", "Preencha gargalo, mudan\xE7a e motivo.");
+      if (!["R", "C", "M"].includes(p.target) || !clean(p.change, 80) || !clean(p.reason, 160)) err("INVALID_ANALYSIS", "Preencha gargalo, decis\xE3o e motivo.");
       a.target = p.target;
       a.change = clean(p.change, 80);
       a.reason = clean(p.reason, 160);
     }
     if (p.evaluation !== void 0) {
       if (t.tests.length < 2) err("ANALYSIS_INCOMPLETE", "Fa\xE7a o segundo teste.");
-      if (!["improved", "partially", "not_improved"].includes(p.evaluation) || !/[0-9]/.test(clean(p.evidence, 240))) err("INVALID_ANALYSIS", "Escolha o resultado e cite uma m\xE9trica num\xE9rica.");
+      if (!["improved", "partially", "not_improved", "unchanged"].includes(p.evaluation) || !/[0-9]/.test(clean(p.evidence, 240))) err("INVALID_ANALYSIS", "Escolha o resultado e cite uma m\xE9trica num\xE9rica.");
       a.evaluation = p.evaluation;
       a.evidence = clean(p.evidence, 240);
     }

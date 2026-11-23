@@ -12,7 +12,7 @@
 1. Faça login como professor, crie a sala e compartilhe o código de oito caracteres somente com a turma. O código expira em 24 horas.
 2. Peça aos alunos que entrem anonimamente e usem nomes fictícios de escuderia. Abra **Construção**.
 3. Mostre o perfil da pista. Cada equipe monta piloto, mecânico, seis peças e compra combustível e pneus da classificatória.
-4. Abra **Testes**. Oriente o Teste #1, a hipótese, uma alteração de preferência, o Teste #2 e a conclusão com um número do relatório.
+4. Abra **Testes**. Oriente o Teste #1, a hipótese, o Teste #2 e a conclusão com um número do relatório. A equipe pode repetir o mesmo projeto para confirmar o resultado ou alterar uma escolha para comparar o efeito.
 5. Anuncie M1 para toda a sala antes de travar as equipes no modo de 60 minutos. M2 é opcional.
 6. Confira a coluna de prontidão. Trave as equipes, crie as baterias e inicie uma de cada vez. Uma bateria admite até cinco carros. Com até duas classificatórias, avançam os dois melhores de cada. Com três ou quatro classificatórias, avançam os vencedores e os melhores tempos restantes até completar cinco finalistas; anuncie essa regra antes da largada.
 7. Depois das classificatórias, crie e inicie a final. A final fornece combustível e pneus básicos automaticamente.
