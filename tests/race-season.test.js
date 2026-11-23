@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newTeam, SLOTS } from '../shared/game.js';
+import { newTeam, SLOTS, inventory } from '../shared/game.js';
 import { mutator, publicState, racePrize } from '../server/core.js';
 import { raceView, carProgress, raceElapsed } from '../src/race-view.js';
 
@@ -118,6 +118,61 @@ test('incidents, prizes and purchases are applied once between races', () => {
   assert.equal(racePrize(1), 300);
   assert.equal(racePrize(5), 100);
   assert.equal(racePrize(1, true), 60);
+});
+
+test('repair kit applies to one race and a prior assignment without stock does not block the next start', () => {
+  const { room, data, teacher, teams } = fixture(3, 1);
+  teams.a.lots.push({ id: 'a-repair', kind: 'repair', quantity: 1, paid: 20 });
+  teams.a.repairAssigned = true;
+  mutator(room, data, 'build-heats', {}, teacher);
+  const first = data.heats[0];
+  mutator(room, data, 'race-action', { heatId: first.id, command: 'start' }, teacher);
+  assert.equal(first.participants.find(p => p.teamId === 'a').repair, true);
+  assert.equal(inventory(teams.a, 'repair'), 0);
+  assert.equal(teams.a.repairAssigned, false);
+  first.status = 'finished';
+  teams.a.repairAssigned = true; // State persisted by the previous version.
+  mutator(room, data, 'build-heats', {}, teacher);
+  const second = data.heats.at(-1);
+  mutator(room, data, 'race-action', { heatId: second.id, command: 'start' }, teacher);
+  assert.equal(second.participants.find(p => p.teamId === 'a').repair, false);
+  assert.equal(teams.a.repairAssigned, false);
+});
+
+test('technical repeat preserves the repair benefit without consuming another kit', () => {
+  const { room, data, teacher, teams } = fixture();
+  teams.a.lots.push({ id: 'a-repair', kind: 'repair', quantity: 1, paid: 20 });
+  teams.a.repairAssigned = true;
+  mutator(room, data, 'build-heats', {}, teacher);
+  const first = data.heats[0];
+  mutator(room, data, 'race-action', { heatId: first.id, command: 'start' }, teacher);
+  first.startAt = Date.now() - 1;
+  first.status = 'running';
+  mutator(room, data, 'race-action', { heatId: first.id, command: 'cancel' }, teacher);
+  mutator(room, data, 'race-action', { heatId: first.id, command: 'repeat' }, teacher);
+  const repeated = data.heats.at(-1);
+  assert.equal(publicState(room, teacher).heats.at(-1).freeSupplies, true);
+  mutator(room, data, 'race-action', { heatId: repeated.id, command: 'start' }, teacher);
+  assert.equal(repeated.participants.find(p => p.teamId === 'a').repair, true);
+  assert.equal(inventory(teams.a, 'repair'), 0);
+});
+
+test('cancelling before the start restores the repair assignment for a repeat', () => {
+  const { room, data, teacher, teams } = fixture();
+  teams.a.lots.push({ id: 'a-repair', kind: 'repair', quantity: 1, paid: 20 });
+  teams.a.repairAssigned = true;
+  mutator(room, data, 'build-heats', {}, teacher);
+  const first = data.heats[0];
+  mutator(room, data, 'race-action', { heatId: first.id, command: 'start' }, teacher);
+  mutator(room, data, 'race-action', { heatId: first.id, command: 'cancel' }, teacher);
+  assert.equal(inventory(teams.a, 'repair'), 1);
+  assert.equal(teams.a.repairAssigned, true);
+  mutator(room, data, 'race-action', { heatId: first.id, command: 'repeat' }, teacher);
+  const repeated = data.heats.at(-1);
+  assert.equal(repeated.freeSupplies, false);
+  mutator(room, data, 'race-action', { heatId: repeated.id, command: 'start' }, teacher);
+  assert.equal(repeated.participants.find(p => p.teamId === 'a').repair, true);
+  assert.equal(inventory(teams.a, 'repair'), 0);
 });
 
 test('teacher can create configured rounds before the final', () => {

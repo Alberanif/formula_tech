@@ -22,7 +22,7 @@ function respond(origin, body, status = 200) {
 function publicState(room, user, projection = false) {
   const data = room.data, own = Object.values(data.teams).find((t) => t.owner === user && !t.removed);
   const roster = Object.values(data.teams).filter((t) => !t.removed).map((t) => ({ id: t.id, name: t.name, color: t.color, number: t.number, ready: t.ready, tests: t.tests.length, complete: completeCar(t) }));
-  const heats = data.heats.map((h) => ({ id: h.id, type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: h.status, speed: h.speed || 1, startAt: h.startAt, pauseTotal: h.pauseTotal, pausedAt: h.status === "admin_paused" ? h.adminPausedAt : h.pausedAt, checkpoint: h.checkpoint, duration: h.duration, prizes: h.prizes || {}, history: h.history, participants: h.participants.map((p) => ({ teamId: p.teamId, name: p.name, color: p.color, number: p.number, base: p.base, adjust: p.adjust, final: p.final, rank: p.rank, sectorTimes: p.sectorTimes, dnf: !!p.dnf, dnfProgress: p.dnfProgress, incidentPenalty: p.incidentPenalty || 0, incidentStopAt: p.incidentStopAt })), event: h.event ? { id: h.event.id, type: h.event.type, title: h.event.title, front: h.event.front, behind: h.event.behind, opensAt: h.event.opensAt, closesAt: h.event.closesAt, sequence: h.event.sequence, precision: h.event.precision, status: h.event.status, result: h.event.result } : null }));
+  const heats = data.heats.map((h) => ({ id: h.id, type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: h.status, speed: h.speed || 1, freeSupplies: !!h.freeSupplies, startAt: h.startAt, pauseTotal: h.pauseTotal, pausedAt: h.status === "admin_paused" ? h.adminPausedAt : h.pausedAt, checkpoint: h.checkpoint, duration: h.duration, prizes: h.prizes || {}, history: h.history, participants: h.participants.map((p) => ({ teamId: p.teamId, name: p.name, color: p.color, number: p.number, base: p.base, adjust: p.adjust, final: p.final, rank: p.rank, sectorTimes: p.sectorTimes, dnf: !!p.dnf, dnfProgress: p.dnfProgress, incidentPenalty: p.incidentPenalty || 0, incidentStopAt: p.incidentStopAt })), event: h.event ? { id: h.event.id, type: h.event.type, title: h.event.title, front: h.event.front, behind: h.event.behind, opensAt: h.event.opensAt, closesAt: h.event.closesAt, sequence: h.event.sequence, precision: h.event.precision, status: h.event.status, result: h.event.result } : null }));
   return { room: { id: room.id, name: room.name, phase: data.phase, circuitId: data.circuitId, mode: data.mode, market: data.market, qteEnabled: data.qteEnabled, raceSpeed: data.raceSpeed || 4, maxPlayers: data.maxPlayers, carsPerHeat: data.carsPerHeat, raceCount: data.raceCount || 2, lapsPerRace: data.lapsPerRace || 3, teacherId: room.teacher_user_id, version: room.version, code: user === room.teacher_user_id ? room.code_display : void 0 }, roster, own: projection ? void 0 : own, teacherTeams: user === room.teacher_user_id ? Object.values(data.teams) : void 0, heats, awards: data.awards, events: data.events.slice(-30), serverTime: now(), catalog: { parts: PARTS, pilots: PILOTS, mechanics: MECHANICS, circuits: CIRCUITS, supplies: SUPPLIES, market: MARKET }, configVersion: VERSION };
 }
 function getTeam(data, user) {
@@ -403,14 +403,25 @@ function mutator(room, data, action, p, user) {
         const t = data.teams[participant.teamId];
         if (!completeCar(t)) err("TEAM_INCOMPLETE", `${t.name} precisa completar o carro antes da largada.`);
         participant.snapshot = snapshot(t);
+        // Repair assignment applies to one race. Older rooms may still have the
+        // flag set after their only kit was consumed in a previous heat.
+        if (!h.freeSupplies && t.repairAssigned && inventory(t, "repair") < 1) t.repairAssigned = false;
+        const useRepair = h.freeSupplies ? !!participant.repair : !!t.repairAssigned;
         const need = supplyNeeds(t);
         if (!h.freeSupplies) {
-          if (inventory(t, "fuel") < need.fuel || inventory(t, "tires") < need.tires) err("MISSING_SUPPLIES", `${t.name} precisa de mais suprimentos.`);
+          const missingFuel = Math.max(0, need.fuel - inventory(t, "fuel"));
+          const missingTires = Math.max(0, need.tires - inventory(t, "tires"));
+          if (missingFuel || missingTires) {
+            const missing = [missingFuel && `${missingFuel} combustível`, missingTires && `${missingTires} kit(s) de pneus`].filter(Boolean);
+            err("MISSING_SUPPLIES", `${t.name} precisa comprar ${missing.join(" e ")} antes de largar.`, { teamId: t.id, fuel: missingFuel, tires: missingTires });
+          }
           consume(t, "fuel", need.fuel);
           consume(t, "tires", need.tires);
-          if (t.repairAssigned) consume(t, "repair", 1);
+          if (useRepair) consume(t, "repair", 1);
         }
-        const sim = simulate(t, data.circuitId, h.laps || 3, t.repairAssigned);
+        const sim = simulate(t, data.circuitId, h.laps || 3, useRepair);
+        participant.repair = useRepair;
+        t.repairAssigned = false;
         participant.base = Math.round(sim.total * 1e3);
         participant.reliability = sim.attributes.R;
         participant.mixedScore = sim.scores.M;
@@ -454,6 +465,7 @@ function mutator(room, data, action, p, user) {
           if (part.consumed) {
             const t = data.teams[part.teamId];
             for (const kind of ["fuel", "tires", "repair"]) if (part.consumed[kind]) t.lots.push({ id: uid(), kind, quantity: part.consumed[kind], paid: 0, phase: "return" });
+            if (part.repair) t.repairAssigned = true;
           }
         }
       }
@@ -465,7 +477,9 @@ function mutator(room, data, action, p, user) {
       if (h.status !== "cancelled" || data.heats.some((x) => x.repeatOf === h.id)) err("INVALID_RACE_STATE", "Esta bateria n\xE3o pode ser repetida.");
       const repeatIds = h.participants.map((x) => x.teamId).filter((id) => data.teams[id] && !data.teams[id].removed);
       if (!repeatIds.length) err("TEAM_NOT_FOUND", "Nenhuma equipe permanece nesta bateria.");
-      const repeated = { id: uid(), type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: "created", participants: withRoster(data, repeatIds), startAt: null, pauseTotal: 0, pausedAt: null, checkpoint: 0, event: null, history: [], cooldowns: {}, duration: 0, repeatOf: h.id, freeSupplies: h.hadStarted };
+      const participants = withRoster(data, repeatIds);
+      for (const participant of participants) participant.repair = !!h.participants.find((x) => x.teamId === participant.teamId)?.repair;
+      const repeated = { id: uid(), type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: "created", participants, startAt: null, pauseTotal: 0, pausedAt: null, checkpoint: 0, event: null, history: [], cooldowns: {}, duration: 0, repeatOf: h.id, freeSupplies: h.hadStarted };
       data.heats.push(repeated);
       event(data, "heat.repeated", { oldHeatId: h.id, newHeatId: repeated.id });
       result = { heat: repeated };
