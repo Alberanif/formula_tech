@@ -4,7 +4,7 @@
 
 O PRD descreve uma aula com jogo competitivo, mas o núcleo pedagógico é o ciclo **prever → montar → medir → comparar → justificar**. A economia e a corrida criam consequências para decisões técnicas. A regra de prontidão depende de dois testes, hipótese e conclusão com métrica. Por solicitação posterior do professor, a alteração do projeto entre os testes passou a ser opcional, permitindo confirmar a reprodutibilidade do mesmo carro.
 
-O documento traz regras numéricas suficientemente específicas para implementação direta: 18 peças, 3 pilotos, 3 mecânicos, 6 atributos, três pistas, 1.200 Cr, três fases de mercado, três voltas e fórmulas de setor e desgaste. Essas regras foram centralizadas em `shared/game.js` e versionadas em `ft-1.0.0`.
+O documento traz regras numéricas suficientemente específicas para implementação direta: 18 peças, 3 pilotos, 3 mecânicos, 6 atributos, três pistas, 1.200 Cr, três fases de mercado e fórmulas de setor e desgaste. Essas regras foram centralizadas em `shared/game.js`. A pedido posterior do professor, a quantidade de voltas passou a ser configurável por sala.
 
 ## Decisões de implementação
 
@@ -16,7 +16,7 @@ O documento traz regras numéricas suficientemente específicas para implementa�
 
 ## Requisitos cobertos no código
 
-Montagem de equipe e seis peças; mecânico como pré-requisito; reembolso do valor pago nas trocas; estoque por lote; M0/M1/M2; dois testes grátis e próximos pagos; engine determinística e logs por setor; hipótese, alteração opcional, conclusão e checklist; salas privadas; baterias e final; consumo da classificatória e suprimentos básicos da final; largada futura; resultado oficial; QTE de reação, precisão e sequência com horários do servidor; pausa, projeção e exportação CSV.
+Montagem de equipe e seis peças; mecânico como pré-requisito; reembolso do valor pago nas trocas; estoque por lote; M0/M1/M2; dois testes grátis e próximos pagos; engine determinística e logs por setor; hipótese, alteração opcional, conclusão e checklist; salas privadas; número de rodadas e voltas configurável; baterias e final; prêmios em créditos por posição; compras e melhorias entre corridas; consumo de suprimentos a cada largada; incidentes sorteados com influência da confiabilidade; duelos frequentes de reação com horários do servidor; pausa, projeção e exportação CSV. O servidor ainda aceita eventos antigos de precisão e sequência que tenham sido abertos antes da atualização.
 
 ## Pontos que exigem validação antes de uso
 
@@ -43,8 +43,8 @@ Esses pontos não devem ser apresentados como verificados em aula.
 | 5–6 | Catálogo e atributos | Implementados conforme vetores e níveis do PRD. |
 | 7–8 | Circuitos e engine | Três pistas e fórmulas implementadas; balanceamento reproduz seção 36. |
 | 9–10 | Testes e finanças avançadas | Testes, logs, comparação e indicador marginal implementados; visualização de oportunidade ainda simplificada. |
-| 11–12 | Corrida e QTE | Corrida determinística, checkpoints, três tipos, validação de servidor e pausa; requer prova integrada de latência. |
-| 13 | Torneio e prêmios | Até cinco por bateria, distribuição automática ou manual, final e prêmios; teste integrado pendente. |
+| 11–12 | Corrida e QTE | Corrida com voltas configuráveis, duelos de reação frequentes, incidentes auditados, validação de servidor e pausa; requer prova integrada de latência. |
+| 13 | Torneio e prêmios | Até cinco por bateria, rodadas configuráveis, final, créditos por posição e melhorias entre corridas; teste integrado pendente. |
 | 14 | Telas do aluno | Fluxo principal coberto; tutorial guiado e relatório imprimível não incluídos. |
 | 15 | Professor | Fases, mercado, baterias, pausa, projeção, remoção, renovação de código, demonstração e CSV. |
 | 16–17 | Mensagens, UX e acessibilidade | Mensagens de erro, navegação, teclado, foco e movimento reduzido; teste com alunos ainda pendente. |

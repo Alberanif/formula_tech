@@ -4,7 +4,7 @@
 
 1. Confirme que o aplicativo e o Neon estão acessíveis, que a conta docente foi criada e que a escola permite o tratamento dos apelidos fictícios.
 2. Teste internet, teclado e projeção. Crie uma **sala de teste** e entre com pelo menos dois navegadores distintos.
-3. Escolha o circuito e decida se QTE ficará ligado para toda a turma. Para acessibilidade motora, crie a sala com QTE desligado.
+3. Escolha o circuito, de 1 a 5 rodadas de corrida e de 1 a 5 voltas por corrida. Decida se os duelos de reação ficarão ligados para toda a turma. Para acessibilidade motora, crie a sala com duelos desligados.
 4. Em aula de 60 minutos, reserve cerca de 10 minutos para introdução, 15 para montagem, 15 para testes e debate, 10 para corridas e 10 para reflexão.
 
 ## Condução
@@ -14,9 +14,10 @@
 3. Mostre o perfil da pista. Cada equipe monta piloto, mecânico, seis peças e compra combustível e pneus da classificatória.
 4. Abra **Testes**. Oriente o Teste #1, a hipótese, o Teste #2 e a conclusão com um número do relatório. A equipe pode repetir o mesmo projeto para confirmar o resultado ou alterar uma escolha para comparar o efeito.
 5. Anuncie M1 para toda a sala antes de travar as equipes no modo de 60 minutos. M2 é opcional.
-6. Confira a coluna de prontidão. Trave as equipes, crie as baterias e inicie uma de cada vez. Uma bateria admite até cinco carros. Com até duas classificatórias, avançam os dois melhores de cada. Com três ou quatro classificatórias, avançam os vencedores e os melhores tempos restantes até completar cinco finalistas; anuncie essa regra antes da largada.
-7. Depois das classificatórias, crie e inicie a final. A final fornece combustível e pneus básicos automaticamente.
-8. Mostre os resultados. Atribua manualmente Melhor Estrategista e Melhor Analista e exporte o CSV. Peça a reflexão final.
+6. Confira a coluna de prontidão. Trave as equipes, crie a primeira rodada e inicie uma bateria de cada vez. Cada bateria admite até cinco carros. A quantidade de baterias é calculada pelo número de equipes e pelo limite de carros escolhido.
+7. Ao fim de cada bateria, os créditos entram automaticamente: 300, 240, 180, 140 ou 100 Cr conforme a posição; abandono recebe 60 Cr. Dê um intervalo para as equipes comprarem suprimentos e melhorarem o carro. A próxima bateria consome combustível e pneus novamente. Em caso de repetição técnica de uma prova já iniciada, esses suprimentos ficam por conta da organização.
+8. Crie as demais rodadas quando todas as baterias da rodada atual terminarem. Se houver mais de uma rodada de corrida, a última rodada é a final: avançam até cinco equipes pelo menor tempo acumulado nas classificatórias. Dê tempo para as finalistas melhorarem o carro antes de iniciar a final. Se a sala tiver apenas uma corrida, mostre os resultados após a rodada única.
+9. Mostre os resultados. Atribua manualmente Melhor Estrategista e Melhor Analista e exporte o CSV. Peça a reflexão final.
 
 ## Incidentes
 

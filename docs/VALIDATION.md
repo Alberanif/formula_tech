@@ -2,17 +2,17 @@
 
 ## Verificado
 
-- `npm test`: 12 testes das regras, catálogo, desgaste, economia, prontidão e balanceamento.
+- `npm test`: 18 testes das regras, catálogo, desgaste, economia, prontidão, rodadas, incidentes, prêmios, duelos de reação e balanceamento.
 - Enumeração de 1.312 configurações financeiramente viáveis em M0, reproduzindo os líderes e tempos da seção 36 do PRD.
 - `npm run build`: frontend gerado sem erro.
 - `npm run db:migrate`: esquema e funções aplicados no Neon configurado.
-- `npm run test:integration`: login docente, sessão de aluno, criação e entrada na sala, leitura privada e de projeção, autorização, idempotência e auditoria passaram em banco real. Os registros criados pelo teste foram removidos.
+- `npm run test:integration`: login docente, sessão de aluno, criação de sala com rodadas e voltas configuráveis, entrada na sala, leitura privada e de projeção, autorização, idempotência e auditoria passaram em banco real. Os registros criados pelo teste foram removidos.
 
 ## Pendente antes de uso em turma
 
 | Critério | Situação |
 | --- | --- |
-| URL HTTPS estável | Pendente de publicação na conta do usuário |
+| URL HTTPS estável | Publicada em `https://formulatech.vercel.app/`; confirmar novo deploy após mudanças |
 | Conta docente definitiva | Criada no Neon e login validado pela API local |
 | Dez alunos + professor + projeção | Pendente teste de carga com navegadores e rede escolar |
 | QTE em rede escolar e latência | Pendente playtest |

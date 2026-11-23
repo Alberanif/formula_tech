@@ -10,7 +10,7 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
   const password=randomBytes(20).toString('hex');
   const salt=randomBytes(32).toString('hex');
   const teacher=(await pool.query(`insert into public.app_users(role) values('teacher') returning id`)).rows[0].id;
-  let student: string|undefined, secondStudent: string|undefined, roomId: string|undefined;
+  let student: string|undefined, secondStudent: string|undefined, thirdStudent: string|undefined, roomId: string|undefined;
   const request=async (action:string, payload:any={}, cookie='') => {
     const headers:any={host:'localhost:8787',origin:'http://localhost:8787',cookie};
     const req:any={method:'POST',headers,body:{action,...payload}};
@@ -25,7 +25,9 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     const login=await request('teacher-login',{email,password});
     assert.equal(login.body.ok,true,JSON.stringify(login.body));
     const teacherCookie=login.headers['Set-Cookie'].split(';')[0];
-    const created=await request('create-room',{name:'Teste Neon',maxPlayers:2,carsPerHeat:2},teacherCookie);
+    const invalidSetup=await request('create-room',{name:'Teste Neon',raceCount:6,lapsPerRace:2},teacherCookie);
+    assert.equal(invalidSetup.body.code,'INVALID_RACE_SETUP');
+    const created=await request('create-room',{name:'Teste Neon',maxPlayers:2,carsPerHeat:2,raceCount:3,lapsPerRace:4},teacherCookie);
     assert.equal(created.body.ok,true,JSON.stringify(created.body));
     roomId=created.body.data.roomId;
     const studentAuth=await request('student-auth');
@@ -48,6 +50,8 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.equal(teacherState.body.data.roster.length,1);
     assert.equal(teacherState.body.data.teacherTeams.length,1);
     assert.equal(teacherState.body.data.room.teacherId,teacher);
+    assert.equal(teacherState.body.data.room.raceCount,3);
+    assert.equal(teacherState.body.data.room.lapsPerRace,4);
     const rooms=await request('teacher-rooms',{},teacherCookie);
     assert.equal(rooms.statusCode,200,JSON.stringify(rooms.body));
     assert.ok(rooms.body.data.rooms.some((room:any)=>room.id===roomId&&room.teamCount===1));
@@ -78,8 +82,35 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.notEqual(replacement.body.data.teamId,joined.body.data.teamId);
     const count=await pool.query('select count(*)::int as total from public.game_audit where room_id=$1',[roomId]);
     assert.equal(count.rows[0].total,3);
+    const thirdAuth=await request('student-auth');
+    thirdStudent=thirdAuth.body.data.user.id;
+    const thirdCookie=thirdAuth.headers['Set-Cookie'].split(';')[0];
+    const thirdJoin=await request('join-room',{code:created.body.data.code,teamName:'Equipe Extra',requestId:randomUUID()},thirdCookie);
+    assert.equal(thirdJoin.statusCode,200,JSON.stringify(thirdJoin.body));
+    const roomData=(await pool.query('select data from public.game_rooms where id=$1',[roomId])).rows[0].data;
+    roomData.phase='QUALIFYING';
+    roomData.qteEnabled=false;
+    const heatId=randomUUID();
+    roomData.heats=[{id:heatId,type:'qualifier',round:1,laps:1,number:1,status:'running',startAt:Date.now()-2000,pauseTotal:0,pausedAt:null,checkpoint:0,event:null,history:[],incidents:[],duration:1500,participants:[
+      {teamId:replacement.body.data.teamId,name:'Equipe Teste',color:'#44b6d7',number:2,base:1000,adjust:0,final:null,rank:null,mixedScore:50,sectorTimes:[]},
+      {teamId:thirdJoin.body.data.teamId,name:'Equipe Extra',color:'#f05d5e',number:3,base:1500,adjust:0,final:null,rank:null,mixedScore:50,sectorTimes:[]},
+    ]}];
+    await pool.query('update public.game_rooms set data=$2::jsonb where id=$1',[roomId,JSON.stringify(roomData)]);
+    const finish=await request('sync-race',{roomId,heatId,requestId:randomUUID()},secondCookie);
+    assert.equal(finish.statusCode,200,JSON.stringify(finish.body));
+    const finished=await request('state',{roomId},secondCookie);
+    assert.equal(finished.body.data.heats[0].status,'finished');
+    assert.equal(finished.body.data.heats[0].prizes[replacement.body.data.teamId],300);
+    assert.equal(finished.body.data.own.wallet,1500);
+    const prizes=await pool.query("select team_id,amount_signed from public.financial_events where room_id=$1 and action='race_prize'",[roomId]);
+    assert.equal(prizes.rows.length,2);
+    assert.deepEqual(prizes.rows.map((x:any)=>x.amount_signed).sort((a:number,b:number)=>a-b),[240,300]);
+    await request('sync-race',{roomId,heatId,requestId:randomUUID()},secondCookie);
+    const repeatedPrizes=await pool.query("select count(*)::int as total from public.financial_events where room_id=$1 and action='race_prize'",[roomId]);
+    assert.equal(repeatedPrizes.rows[0].total,2);
   } finally {
     if (roomId) await pool.query('delete from public.game_rooms where id=$1',[roomId]);
+    if (thirdStudent) await pool.query('delete from public.app_users where id=$1',[thirdStudent]);
     if (secondStudent) await pool.query('delete from public.app_users where id=$1',[secondStudent]);
     if (student) await pool.query('delete from public.app_users where id=$1',[student]);
     await pool.query('delete from public.app_users where id=$1',[teacher]);

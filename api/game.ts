@@ -10,6 +10,7 @@ const knownErrors = new Set([
   'INVALID_ACTION','INVALID_ANALYSIS','INVALID_ASSIGNMENTS','INVALID_AWARD','INVALID_COLOR',
   'INVALID_HEAT_SIZE','INVALID_ITEM','INVALID_LOGIN','INVALID_MARKET_PHASE','INVALID_NAME',
   'INVALID_QUANTITY','INVALID_RACE_STATE','INVALID_REQUEST','INVALID_ROOM_STATE','INVALID_TEAM_NAME',
+  'INVALID_RACE_SETUP',
   'MISSING_SUPPLIES','NOT_AUTHORIZED','PART_REQUIREMENT_NOT_MET','PURCHASE_QUOTE_EXPIRED',
   'QTE_ALREADY_SUBMITTED','QTE_NOT_ELIGIBLE','QTE_NOT_OPEN','RACE_IN_PROGRESS','RATE_LIMITED',
   'ROOM_CLOSED','ROOM_FULL','ROOM_NOT_FOUND','SERVER_CONFIG_MISSING','STOCK_LIMIT',
@@ -78,8 +79,11 @@ export default async function handler(req: any, res: any) {
       const circuitId = CIRCUITS[p.circuitId] ? p.circuitId : 'balance';
       const maxPlayers = Number(p.maxPlayers) || 10, carsPerHeat = Number(p.carsPerHeat) || 5;
       if (!Number.isInteger(maxPlayers) || !Number.isInteger(carsPerHeat) || maxPlayers < 1 || maxPlayers > 20 || carsPerHeat < 1 || carsPerHeat > 5 || Math.ceil(maxPlayers/carsPerHeat)>5) err('INVALID_HEAT_SIZE','Use 1 a 20 equipes, 1 a 5 carros por bateria e no máximo cinco classificatórias.');
+      const raceCount = p.raceCount === undefined ? 2 : Number(p.raceCount);
+      const lapsPerRace = p.lapsPerRace === undefined ? 3 : Number(p.lapsPerRace);
+      if (!Number.isInteger(raceCount) || raceCount < 1 || raceCount > 5 || !Number.isInteger(lapsPerRace) || lapsPerRace < 1 || lapsPerRace > 5) err('INVALID_RACE_SETUP','Escolha de 1 a 5 corridas por equipe e de 1 a 5 voltas por corrida.');
       const roomCode=code(),projectionToken=code(16);
-      const data={phase:'LOBBY',circuitId,mode:p.mode==='extended'?'extended':'standard',market:'M0',qteEnabled:p.qteEnabled!==false,maxPlayers,carsPerHeat,teams:{},heats:[],events:[],awards:{},configVersion:VERSION};
+      const data={phase:'LOBBY',circuitId,mode:p.mode==='extended'?'extended':'standard',market:'M0',qteEnabled:p.qteEnabled!==false,maxPlayers,carsPerHeat,raceCount,lapsPerRace,teams:{},heats:[],events:[],awards:{},configVersion:VERSION};
       const result=await pool.query(`insert into public.game_rooms(teacher_user_id,code_hash,code_display,projection_hash,name,data)
         values($1,$2,$3,$4,$5,$6::jsonb) returning id`,[user,await hash(roomCode),roomCode,await hash(projectionToken),name,JSON.stringify(data)]);
       return json(res,200,{ok:true,data:{roomId:result.rows[0].id,code:roomCode,projectionToken}});
@@ -125,11 +129,12 @@ export default async function handler(req: any, res: any) {
     }
     if (action==='export-session') {
       if (!isTeacher) err('NOT_AUTHORIZED','Apenas o professor pode fazer isso.');
-      const rows=[['Escuderia','Saldo','Investimento fixo','Teste 1 (s)','Teste 2 (s)','Hipótese','Conclusão','Classificatória (s)','Final (s)']];
+      const rows=[['Escuderia','Saldo','Investimento fixo','Teste 1 (s)','Teste 2 (s)','Hipótese','Conclusão','Corridas','Prêmios (Cr)']];
       for (const t of Object.values(room.data.teams) as any[]) {
-        const q=room.data.heats.flatMap((h:any)=>h.type==='qualifier'?h.participants.filter((x:any)=>x.teamId===t.id).map((x:any)=>x.final/1000):[])[0]||'';
-        const f=room.data.heats.flatMap((h:any)=>h.type==='final'?h.participants.filter((x:any)=>x.teamId===t.id).map((x:any)=>x.final/1000):[])[0]||'';
-        rows.push([t.name,t.wallet,fixedCost(t),t.tests[0]?.result.total||'',t.tests[1]?.result.total||'',`${t.analysis.target||''} ${t.analysis.change||''} ${t.analysis.reason||''}`,t.analysis.evidence||'',q,f]);
+        const races=room.data.heats.filter((h:any)=>h.status==='finished'&&h.participants.some((x:any)=>x.teamId===t.id));
+        const summary=races.map((h:any)=>{const p=h.participants.find((x:any)=>x.teamId===t.id);return `${h.type==='final'?'Final':`Rodada ${h.round||1}`} / bateria ${h.number}: ${p.dnf?'FORA':`${(p.final/1000).toFixed(2)} s`}`;}).join(' | ');
+        const prizes=races.reduce((sum:number,h:any)=>sum+(h.prizes?.[t.id]||0),0);
+        rows.push([t.name,t.wallet,fixedCost(t),t.tests[0]?.result.total||'',t.tests[1]?.result.total||'',`${t.analysis.target||''} ${t.analysis.change||''} ${t.analysis.reason||''}`,t.analysis.evidence||'',summary,prizes]);
       }
       const csv=rows.map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(';')).join('\r\n');
       return json(res,200,{ok:true,data:{csv}});

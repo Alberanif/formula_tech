@@ -4,7 +4,9 @@ Jogo web de decisões de engenharia para alunos de 15 a 17 anos. Equipes recebem
 
 ## Estado
 
-O código e as regras estão implementados. A migração e um teste integrado de login, sala, inscrição, autorização e projeção passaram no Neon fornecido para este projeto. Ainda faltam publicação HTTPS, teste com dez navegadores e playtest em aula. Veja [Validação](docs/VALIDATION.md).
+O projeto está publicado em [formulatech.vercel.app](https://formulatech.vercel.app/). A migração e o teste integrado de login, sala, inscrição, autorização e projeção passaram no Neon do projeto. Ainda falta validar a experiência com dez navegadores simultâneos e fazer um playtest em aula. Veja [Validação](docs/VALIDATION.md).
+
+O professor define de 1 a 5 rodadas e de 1 a 5 voltas por corrida. As equipes enfrentam duelos de reação, incidentes de pista e recebem créditos conforme a colocação ao fim de cada bateria. Elas podem comprar suprimentos e melhorar o carro antes da próxima largada. Quando há várias rodadas, a última é a final com até cinco equipes classificadas pelo tempo acumulado.
 
 ## Rodar localmente
 
