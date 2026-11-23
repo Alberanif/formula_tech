@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { newTeam, SLOTS } from '../shared/game.js';
 import { mutator, publicState, racePrize } from '../server/core.js';
-import { raceView, carProgress } from '../src/race-view.js';
+import { raceView, carProgress, raceElapsed } from '../src/race-view.js';
 
 const parts = ['MOTOR_ECO', 'CHASSIS_REINFORCED', 'TIRE_STANDARD', 'SUSP_BASIC', 'AERO_LOWDRAG', 'BRAKE_BASIC'];
 function fixture(raceCount = 2, lapsPerRace = 2) {
@@ -14,7 +14,7 @@ function fixture(raceCount = 2, lapsPerRace = 2) {
     team.ready = true;
     return [id, team];
   }));
-  const data = { phase: 'LOCK_IN', circuitId: 'balance', mode: 'standard', market: 'M1', qteEnabled: true, maxPlayers: 2, carsPerHeat: 2, raceCount, lapsPerRace, teams, heats: [], events: [], awards: {} };
+  const data = { phase: 'LOCK_IN', circuitId: 'balance', mode: 'standard', market: 'M1', qteEnabled: true, raceSpeed: 1, maxPlayers: 2, carsPerHeat: 2, raceCount, lapsPerRace, teams, heats: [], events: [], awards: {} };
   room.data = data;
   return { room, data, teacher, teams };
 }
@@ -39,6 +39,46 @@ test('reaction duel is visible long enough and first valid server reaction wins'
   mutator(room, data, 'submit-qte', { eventId: heat.event.id, key: 'SPACE' }, `student-${second}`);
   assert.equal(heat.event.result.winner, first);
   assert.equal(heat.status, 'running');
+});
+
+test('one-lap race delivers ten distinct duels and at least one visible incident at 8× speed', () => {
+  const { room, data, teacher } = fixture(1, 1);
+  assert.throws(() => mutator(room, data, 'race-speed', { speed: 8 }, 'student-a'), e => e.code === 'NOT_AUTHORIZED');
+  mutator(room, data, 'race-speed', { speed: 8 }, teacher);
+  mutator(room, data, 'build-heats', {}, teacher);
+  const heat = data.heats[0];
+  mutator(room, data, 'race-action', { heatId: heat.id, command: 'start' }, teacher);
+  assert.equal(heat.speed, 8);
+  assert.equal(heat.incidents.length, 3);
+  const displayHeat = publicState(room, 'student-a').heats[0];
+  assert.equal(displayHeat.speed, 8);
+  assert.ok(raceElapsed({ startAt: Date.now() - 1000, pauseTotal: 0, speed: 8 }) >= 8000);
+  heat.startAt = Date.now() - heat.duration;
+  for (let i = 0; i < 20 && heat.status !== 'finished'; i++) {
+    mutator(room, data, 'sync-race', { heatId: heat.id }, teacher);
+    if (heat.status === 'qte_paused') {
+      heat.event.closesAt = Date.now() - 1;
+      mutator(room, data, 'sync-race', { heatId: heat.id }, teacher);
+    }
+  }
+  const opens = heat.history.filter(x => x.type === 'qte_open');
+  assert.equal(opens.length, 10);
+  assert.equal(new Set(opens.map(x => x.title)).size, 10);
+  assert.equal(heat.history.filter(x => x.type === 'qte').length, 10);
+  assert.ok(heat.history.filter(x => x.type === 'incident').length >= 1);
+  assert.equal(heat.status, 'finished');
+});
+
+test('student leaving releases the slot and can enter again while registration is open', () => {
+  const { room, data } = fixture();
+  data.phase = 'LOBBY';
+  const result = mutator(room, data, 'leave-room', {}, 'student-a');
+  assert.equal(result.result.left, true);
+  assert.equal(publicState(room, 'student-a').own, undefined);
+  assert.equal(publicState(room, 'teacher').roster.length, 1);
+  const rejoined = mutator(room, data, 'join-room', { teamName: 'Nova Equipe' }, 'student-a');
+  assert.notEqual(rejoined.result.teamId, 'a');
+  assert.equal(publicState(room, 'teacher').roster.length, 2);
 });
 
 test('incidents, prizes and purchases are applied once between races', () => {

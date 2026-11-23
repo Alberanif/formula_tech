@@ -10,11 +10,11 @@ const knownErrors = new Set([
   'INVALID_ACTION','INVALID_ANALYSIS','INVALID_ASSIGNMENTS','INVALID_AWARD','INVALID_COLOR',
   'INVALID_HEAT_SIZE','INVALID_ITEM','INVALID_LOGIN','INVALID_MARKET_PHASE','INVALID_NAME',
   'INVALID_QUANTITY','INVALID_RACE_STATE','INVALID_REQUEST','INVALID_ROOM_STATE','INVALID_TEAM_NAME',
-  'INVALID_RACE_SETUP',
+  'INVALID_RACE_SETUP','INVALID_RACE_SPEED',
   'MISSING_SUPPLIES','NOT_AUTHORIZED','PART_REQUIREMENT_NOT_MET','PURCHASE_QUOTE_EXPIRED',
   'QTE_ALREADY_SUBMITTED','QTE_NOT_ELIGIBLE','QTE_NOT_OPEN','RACE_IN_PROGRESS','RATE_LIMITED',
   'ROOM_CLOSED','ROOM_FULL','ROOM_NOT_FOUND','SERVER_CONFIG_MISSING','STOCK_LIMIT',
-  'TEAM_INCOMPLETE','TEAM_NOT_FOUND','TEAM_REMOVED','TEAMS_NOT_READY',
+  'TEAM_INCOMPLETE','TEAM_NOT_FOUND','TEAM_REMOVED','TEAM_LEFT','TEAMS_NOT_READY',
 ]);
 const json = (res: any, status: number, body: any) => res.status(status).json(body);
 
@@ -82,8 +82,10 @@ export default async function handler(req: any, res: any) {
       const raceCount = p.raceCount === undefined ? 2 : Number(p.raceCount);
       const lapsPerRace = p.lapsPerRace === undefined ? 3 : Number(p.lapsPerRace);
       if (!Number.isInteger(raceCount) || raceCount < 1 || raceCount > 5 || !Number.isInteger(lapsPerRace) || lapsPerRace < 1 || lapsPerRace > 5) err('INVALID_RACE_SETUP','Escolha de 1 a 5 rodadas e de 1 a 5 voltas por corrida.');
+      const raceSpeed = p.raceSpeed === undefined ? 4 : Number(p.raceSpeed);
+      if (![1,2,4,6,8].includes(raceSpeed)) err('INVALID_RACE_SPEED','Escolha 1×, 2×, 4×, 6× ou 8×.');
       const roomCode=code(),projectionToken=code(16);
-      const data={phase:'LOBBY',circuitId,mode:p.mode==='extended'?'extended':'standard',market:'M0',qteEnabled:p.qteEnabled!==false,maxPlayers,carsPerHeat,raceCount,lapsPerRace,teams:{},heats:[],events:[],awards:{},configVersion:VERSION};
+      const data={phase:'LOBBY',circuitId,mode:p.mode==='extended'?'extended':'standard',market:'M0',qteEnabled:p.qteEnabled!==false,raceSpeed,maxPlayers,carsPerHeat,raceCount,lapsPerRace,teams:{},heats:[],events:[],awards:{},configVersion:VERSION};
       const result=await pool.query(`insert into public.game_rooms(teacher_user_id,code_hash,code_display,projection_hash,name,data)
         values($1,$2,$3,$4,$5,$6::jsonb) returning id`,[user,await hash(roomCode),roomCode,await hash(projectionToken),name,JSON.stringify(data)]);
       return json(res,200,{ok:true,data:{roomId:result.rows[0].id,code:roomCode,projectionToken}});
@@ -105,6 +107,16 @@ export default async function handler(req: any, res: any) {
     }
     if (!room) err('ROOM_NOT_FOUND','Sala não encontrada.');
     room.version=Number(room.version);
+    if (room.data.deleted) {
+      if (action==='delete-room' && uuid.test(String(p.requestId||''))) {
+        const prior=await pool.query('select response,actor_user_id from public.game_requests where room_id=$1 and request_id=$2',[room.id,p.requestId]);
+        if (prior.rows[0]) {
+          if (prior.rows[0].actor_user_id!==user) err('NOT_AUTHORIZED','Esta ação pertence a outra sessão.');
+          return json(res,200,prior.rows[0].response);
+        }
+      }
+      err('ROOM_NOT_FOUND','Esta sala foi excluída pelo professor.');
+    }
     if (action==='join-room' && new Date(room.code_expires_at).getTime()<now()) err('ROOM_CLOSED','O código desta sala expirou.');
     if (projection) {
       if (await hash(String(p.projectionToken)) !== room.projection_hash) err('NOT_AUTHORIZED','Link de projeção inválido.');
@@ -113,8 +125,8 @@ export default async function handler(req: any, res: any) {
     const isTeacher=room.teacher_user_id===user;
     const member=Object.values(room.data.teams).some((t:any)=>t.owner===user&&!t.removed);
     if (action!=='join-room' && !isTeacher && !member) {
-      const removed=Object.values(room.data.teams).some((t:any)=>t.owner===user&&t.removed);
-      err(removed?'TEAM_REMOVED':'NOT_AUTHORIZED',removed?'Sua escuderia foi excluída desta sala pelo professor.':'Você não pertence a esta sala.');
+      const removed=Object.values(room.data.teams).filter((t:any)=>t.owner===user&&t.removed).at(-1) as any;
+      err(removed?.left?'TEAM_LEFT':removed?'TEAM_REMOVED':'NOT_AUTHORIZED',removed?.left?'Você saiu desta sala. Entre novamente se a inscrição ainda estiver aberta.':removed?'Sua escuderia foi excluída desta sala pelo professor.':'Você não pertence a esta sala.');
     }
     if (member) await pool.query(`insert into public.game_presence(room_id,user_id,last_seen_at) values($1,$2,now())
       on conflict(room_id,user_id) do update set last_seen_at=now()`,[room.id,user]);
@@ -145,10 +157,6 @@ export default async function handler(req: any, res: any) {
       if (prior.rows[0].actor_user_id!==user) err('NOT_AUTHORIZED','Esta ação pertence a outra sessão.');
       return json(res,200,prior.rows[0].response);
     }
-    if (action==='sync-race') {
-      const presence=await pool.query(`select user_id from public.game_presence where room_id=$1 and last_seen_at>now()-interval '10 seconds'`,[room.id]);
-      p.activeTeamIds=Object.values(room.data.teams).filter((t:any)=>presence.rows.some(x=>x.user_id===t.owner)).map((t:any)=>t.id);
-    }
     const copy=structuredClone(room.data),beforeVersion=room.version;
     const mutation=mutator(room,copy,action,p,user!);
     if (action==='sync-race' && JSON.stringify(copy)===JSON.stringify(room.data)) return json(res,200,{ok:true,code:'OK',data:mutation.result,current_version:room.version});
@@ -161,7 +169,7 @@ export default async function handler(req: any, res: any) {
     if (!knownErrors.has(e?.code) && e?.code) console.error('Game API:', e.code);
     if (!e?.code) console.error('Game API:', e);
     const code=knownErrors.has(e?.code)?e.code:'SERVER_ERROR';
-    return json(res,['NOT_AUTHORIZED','TEAM_REMOVED'].includes(code)?403:code==='RATE_LIMITED'?429:code==='SERVER_CONFIG_MISSING'?503:code==='SERVER_ERROR'?500:400,
+    return json(res,['NOT_AUTHORIZED','TEAM_REMOVED','TEAM_LEFT'].includes(code)?403:code==='RATE_LIMITED'?429:code==='SERVER_CONFIG_MISSING'?503:code==='SERVER_ERROR'?500:400,
       {ok:false,code,message:code==='SERVER_ERROR'?'Falha temporária. Tente novamente.':e.message,details:code==='SERVER_ERROR'?{}:e?.details||{}});
   }
 }

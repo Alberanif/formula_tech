@@ -30,17 +30,21 @@ test('teacher room survives polling and test conclusion unlocks after the second
     ...game,
     document,
     URLSearchParams,
+    crypto: { randomUUID: () => '00000000-0000-4000-8000-000000000001' },
     location: { search: '' },
     localStorage: storage,
     sessionStorage: { getItem: () => null },
     fetch: async () => ({ json: async () => responseBody }),
     setTimeout: () => 0,
     setInterval: () => 0,
+    window: { confirm: () => true },
   };
-  runInNewContext(source + '\nglobalThis.testClient = { ui, load, render, openRoom, setTeacher(value, snapshot) { user = value; state = snapshot; ui.screen = "teacher"; }, setStudent(value, snapshot) { user = value; state = snapshot; ui.screen = "overview"; }, showCreate() { state = null; ui.screen = "create"; } };', context);
+  runInNewContext(source + '\nglobalThis.testClient = { ui, load, render, openRoom, leaveRoom, setTeacher(value, snapshot) { user = value; state = snapshot; ui.screen = "teacher"; }, setStudent(value, snapshot) { user = value; state = snapshot; ui.screen = "overview"; }, showCreate() { state = null; ui.screen = "create"; } };', context);
   context.testClient.setTeacher({ id: teacherId, role: 'teacher' }, publicState(room, teacherId));
   context.testClient.render();
   assert.match(app.innerHTML, /Equipe Teste/);
+  assert.match(app.innerHTML, /Velocidade das próximas baterias/);
+  assert.match(app.innerHTML, /data-action="delete-room"/);
   assert.match(app.innerHTML, /<th>Ações<\/th>/);
   assert.match(app.innerHTML, /<td class="team-action-cell"><button[^>]*data-action="remove-team"[^>]*data-team="team-id"[^>]*>Excluir<\/button><\/td>/);
 
@@ -78,6 +82,7 @@ test('teacher room survives polling and test conclusion unlocks after the second
   context.testClient.ui.screen = 'tests';
   context.testClient.render();
   assert.match(app.innerHTML, /A conclusão será liberada após o segundo teste/);
+  assert.match(app.innerHTML, /data-action="leave-room"/);
   assert.match(app.innerHTML.split('<form id="conclusion-form">')[1].split('</form>')[0], /disabled/);
 
   team.tests.push({ ...first, number: 2 });
@@ -105,4 +110,13 @@ test('teacher room survives polling and test conclusion unlocks after the second
   assert.equal(storage.getItem('ft_room'), null);
   assert.equal(context.testClient.ui.screen, 'welcome');
   assert.match(app.innerHTML, /Sua escuderia foi excluída/);
+
+  context.testClient.ui.roomId = roomId;
+  storage.setItem('ft_room', roomId);
+  context.testClient.setStudent({ id: 'student-id', role: 'student' }, publicState(room, 'student-id'));
+  responseBody = { ok: true, data: { left: true } };
+  await context.testClient.leaveRoom();
+  assert.equal(context.testClient.ui.roomId, null);
+  assert.equal(storage.getItem('ft_room'), null);
+  assert.match(app.innerHTML, /A vaga foi liberada/);
 });

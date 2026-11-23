@@ -82,6 +82,9 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     assert.notEqual(replacement.body.data.teamId,joined.body.data.teamId);
     const count=await pool.query('select count(*)::int as total from public.game_audit where room_id=$1',[roomId]);
     assert.equal(count.rows[0].total,3);
+    assert.equal((await request('race-speed',{roomId,speed:8,requestId:randomUUID()},secondCookie)).statusCode,403);
+    assert.equal((await request('race-speed',{roomId,speed:8,requestId:randomUUID()},teacherCookie)).body.data.speed,8);
+    assert.equal((await request('state',{roomId},teacherCookie)).body.data.room.raceSpeed,8);
     const thirdAuth=await request('student-auth');
     thirdStudent=thirdAuth.body.data.user.id;
     const thirdCookie=thirdAuth.headers['Set-Cookie'].split(';')[0];
@@ -108,6 +111,24 @@ test('Neon: sessão, autorização, sala, inscrição e idempotência', async ()
     await request('sync-race',{roomId,heatId,requestId:randomUUID()},secondCookie);
     const repeatedPrizes=await pool.query("select count(*)::int as total from public.financial_events where room_id=$1 and action='race_prize'",[roomId]);
     assert.equal(repeatedPrizes.rows[0].total,2);
+    const left=await request('leave-room',{roomId,requestId:randomUUID()},secondCookie);
+    assert.equal(left.statusCode,200,JSON.stringify(left.body));
+    assert.equal(left.body.data.left,true);
+    assert.equal((await request('state',{roomId},secondCookie)).body.code,'TEAM_LEFT');
+    assert.equal((await request('state',{roomId},teacherCookie)).body.data.roster.length,1);
+    const deniedDelete=await request('delete-room',{roomId,requestId:randomUUID()},secondCookie);
+    assert.equal(deniedDelete.statusCode,403);
+    const deleteRequestId=randomUUID();
+    const deleted=await request('delete-room',{roomId,requestId:deleteRequestId},teacherCookie);
+    assert.equal(deleted.statusCode,200,JSON.stringify(deleted.body));
+    assert.equal(deleted.body.data.deleted,true);
+    const deleteRetry=await request('delete-room',{roomId,requestId:deleteRequestId},teacherCookie);
+    assert.deepEqual(deleteRetry.body,deleted.body);
+    const roomsAfterDelete=await request('teacher-rooms',{},teacherCookie);
+    assert.ok(!roomsAfterDelete.body.data.rooms.some((room:any)=>room.id===roomId));
+    assert.equal((await request('state',{roomId},teacherCookie)).body.code,'ROOM_NOT_FOUND');
+    assert.equal((await request('state',{roomId,projectionToken:created.body.data.projectionToken})).body.code,'ROOM_NOT_FOUND');
+    assert.equal((await request('join-room',{code:created.body.data.code,teamName:'Outra',requestId:randomUUID()},thirdCookie)).body.code,'ROOM_NOT_FOUND');
   } finally {
     if (roomId) await pool.query('delete from public.game_rooms where id=$1',[roomId]);
     if (thirdStudent) await pool.query('delete from public.app_users where id=$1',[thirdStudent]);

@@ -9,6 +9,9 @@ const clean = (value, max = 160) => String(value ?? "").replace(/[<>\x00-\x1f]/g
 const banned = /\b(porra|caralho|foda|puta|merda)\b/i;
 const hash = async (value) => createHash("sha256").update(value + (process.env.ROOM_CODE_PEPPER || "")).digest("hex");
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const RACE_SPEEDS = [1, 2, 4, 6, 8];
+const QTE_SCENARIOS = ["Largada lado a lado", "Disputa na primeira curva", "Ataque na reta", "Defesa na freada", "Saída de curva", "Vácuo na reta oposta", "Disputa no setor técnico", "Ultrapassagem por fora", "Pressão na última curva", "Sprint para a linha"];
+const qteCount = (laps) => Math.max(10, (laps || 3) * 3 + 1);
 function code(length = 8) {
   const bytes = randomBytes(length);
   return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
@@ -19,8 +22,8 @@ function respond(origin, body, status = 200) {
 function publicState(room, user, projection = false) {
   const data = room.data, own = Object.values(data.teams).find((t) => t.owner === user && !t.removed);
   const roster = Object.values(data.teams).filter((t) => !t.removed).map((t) => ({ id: t.id, name: t.name, color: t.color, number: t.number, ready: t.ready, tests: t.tests.length, complete: completeCar(t) }));
-  const heats = data.heats.map((h) => ({ id: h.id, type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: h.status, startAt: h.startAt, pauseTotal: h.pauseTotal, pausedAt: h.status === "admin_paused" ? h.adminPausedAt : h.pausedAt, checkpoint: h.checkpoint, duration: h.duration, prizes: h.prizes || {}, history: h.history, participants: h.participants.map((p) => ({ teamId: p.teamId, name: p.name, color: p.color, number: p.number, base: p.base, adjust: p.adjust, final: p.final, rank: p.rank, sectorTimes: p.sectorTimes, dnf: !!p.dnf, dnfProgress: p.dnfProgress, incidentPenalty: p.incidentPenalty || 0, incidentStopAt: p.incidentStopAt })), event: h.event ? { id: h.event.id, type: h.event.type, front: h.event.front, behind: h.event.behind, opensAt: h.event.opensAt, closesAt: h.event.closesAt, sequence: h.event.sequence, precision: h.event.precision, status: h.event.status, result: h.event.result } : null }));
-  return { room: { id: room.id, name: room.name, phase: data.phase, circuitId: data.circuitId, mode: data.mode, market: data.market, qteEnabled: data.qteEnabled, maxPlayers: data.maxPlayers, carsPerHeat: data.carsPerHeat, raceCount: data.raceCount || 2, lapsPerRace: data.lapsPerRace || 3, teacherId: room.teacher_user_id, version: room.version, code: user === room.teacher_user_id ? room.code_display : void 0 }, roster, own: projection ? void 0 : own, teacherTeams: user === room.teacher_user_id ? Object.values(data.teams) : void 0, heats, awards: data.awards, events: data.events.slice(-30), serverTime: now(), catalog: { parts: PARTS, pilots: PILOTS, mechanics: MECHANICS, circuits: CIRCUITS, supplies: SUPPLIES, market: MARKET }, configVersion: VERSION };
+  const heats = data.heats.map((h) => ({ id: h.id, type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: h.status, speed: h.speed || 1, startAt: h.startAt, pauseTotal: h.pauseTotal, pausedAt: h.status === "admin_paused" ? h.adminPausedAt : h.pausedAt, checkpoint: h.checkpoint, duration: h.duration, prizes: h.prizes || {}, history: h.history, participants: h.participants.map((p) => ({ teamId: p.teamId, name: p.name, color: p.color, number: p.number, base: p.base, adjust: p.adjust, final: p.final, rank: p.rank, sectorTimes: p.sectorTimes, dnf: !!p.dnf, dnfProgress: p.dnfProgress, incidentPenalty: p.incidentPenalty || 0, incidentStopAt: p.incidentStopAt })), event: h.event ? { id: h.event.id, type: h.event.type, title: h.event.title, front: h.event.front, behind: h.event.behind, opensAt: h.event.opensAt, closesAt: h.event.closesAt, sequence: h.event.sequence, precision: h.event.precision, status: h.event.status, result: h.event.result } : null }));
+  return { room: { id: room.id, name: room.name, phase: data.phase, circuitId: data.circuitId, mode: data.mode, market: data.market, qteEnabled: data.qteEnabled, raceSpeed: data.raceSpeed || 4, maxPlayers: data.maxPlayers, carsPerHeat: data.carsPerHeat, raceCount: data.raceCount || 2, lapsPerRace: data.lapsPerRace || 3, teacherId: room.teacher_user_id, version: room.version, code: user === room.teacher_user_id ? room.code_display : void 0 }, roster, own: projection ? void 0 : own, teacherTeams: user === room.teacher_user_id ? Object.values(data.teams) : void 0, heats, awards: data.awards, events: data.events.slice(-30), serverTime: now(), catalog: { parts: PARTS, pilots: PILOTS, mechanics: MECHANICS, circuits: CIRCUITS, supplies: SUPPLIES, market: MARKET }, configVersion: VERSION };
 }
 function getTeam(data, user) {
   const team = Object.values(data.teams).find((t) => t.owner === user && !t.removed);
@@ -84,17 +87,18 @@ function rank(h) {
 function projected(h, fraction) {
   return [...h.participants].map((p) => ({ ...p, projected: p.base * fraction + p.adjust })).sort((a, b) => a.projected - b.projected);
 }
-export function racePrize(rank, dnf = false) {
-  return dnf ? 60 : [300, 240, 180, 140, 100][Math.min(Math.max(rank, 1), 5) - 1];
+export function racePrize(rank, dnf = false, withdrawn = false) {
+  return withdrawn ? 0 : dnf ? 60 : [300, 240, 180, 140, 100][Math.min(Math.max(rank, 1), 5) - 1];
 }
 function scheduleIncidents(h) {
   const targets = [...h.participants];
-  h.incidents = [0.23, 0.51, 0.77].slice(0, Math.min(3, Math.max(1, Math.ceil(targets.length / 2)))).map((fraction) => {
+  h.incidents = [0.18, 0.45, 0.96].map((fraction, incidentIndex) => {
+    if (!targets.length) targets.push(...h.participants);
     const total = targets.reduce((sum, p) => sum + Math.max(10, 110 - p.reliability), 0);
     let draw = randomInt(total), index = 0;
     for (; index < targets.length - 1; index++) { draw -= Math.max(10, 110 - targets[index].reliability); if (draw < 0) break; }
     const [target] = targets.splice(index, 1);
-    const roll = randomInt(100), crashChance = target.reliability < 35 ? 10 : 4;
+    const roll = randomInt(100), crashChance = incidentIndex === 2 ? (target.reliability < 35 ? 10 : 4) : 0;
     return { fraction, teamId: target.teamId, type: roll < crashChance ? "crash" : roll < 47 ? "breakdown" : "spin", applied: false };
   });
 }
@@ -133,7 +137,7 @@ function resolveQte(h) {
   h.status = "running";
   h.history.push({ type: "qte", checkpoint: e.checkpoint, result: e.result, at: (/* @__PURE__ */ new Date()).toISOString() });
 }
-function advanceRace(h, data, activeTeamIds) {
+function advanceRace(h, data) {
   const t = now();
   if (h.status === "countdown" && t >= h.startAt) h.status = "running";
   if (h.status === "qte_paused") {
@@ -142,36 +146,38 @@ function advanceRace(h, data, activeTeamIds) {
     } else return [];
   }
   if (h.status !== "running") return [];
-  const logical = Math.max(0, t - h.startAt - h.pauseTotal), baseDuration = h.clockDuration || h.duration, count = Math.max(4, (h.laps || 3) * 3 + 1), thresholds = Array.from({ length: count }, (_, i) => (i + 1) / (count + 1));
-  applyIncidents(h, logical);
+  const logical = Math.max(0, (t - h.startAt - h.pauseTotal) * (h.speed || 1)), baseDuration = h.clockDuration || h.duration, count = qteCount(h.laps), thresholds = Array.from({ length: count }, (_, i) => (i + 1) / (count + 1));
   while (h.checkpoint < thresholds.length && logical >= baseDuration * thresholds[h.checkpoint]) {
     const cp = h.checkpoint++;
-    if (!data.qteEnabled || logical - baseDuration * thresholds[cp] > 2e3) continue;
+    applyIncidents(h, baseDuration * thresholds[cp]);
+    if (!data.qteEnabled) continue;
     const positions = projected(h, thresholds[cp]).filter((p) => !p.dnf);
-    const pairs = positions.slice(0, -1).map((front, i) => [front, positions[i + 1]]).filter(([front, behind]) => activeTeamIds.includes(front.teamId) && activeTeamIds.includes(behind.teamId));
+    const pairs = positions.slice(0, -1).map((front, i) => [front, positions[i + 1]]);
     const pair = pairs.length ? pairs[cp % pairs.length] : null;
     if (pair) {
       const [front, behind] = pair;
       const opensAt = t + 1600;
-      h.event = { id: uid(), checkpoint: cp + 1, type: "reaction", front: front.teamId, behind: behind.teamId, opensAt, closesAt: opensAt + 4e3, status: "open", inputs: {} };
+      h.event = { id: uid(), checkpoint: cp + 1, type: "reaction", title: QTE_SCENARIOS[cp % QTE_SCENARIOS.length], front: front.teamId, behind: behind.teamId, opensAt, closesAt: opensAt + 4e3, status: "open", inputs: {} };
       h.status = "qte_paused";
       h.pausedAt = t;
-      h.history.push({ type: "qte_open", checkpoint: cp + 1, at: (/* @__PURE__ */ new Date()).toISOString() });
+      h.history.push({ type: "qte_open", checkpoint: cp + 1, title: h.event.title, at: (/* @__PURE__ */ new Date()).toISOString() });
       break;
     }
   }
+  if (h.status === "running") applyIncidents(h, logical);
   h.duration = Math.max(h.duration, ...h.participants.filter((p) => !p.dnf).map((p) => p.base + Math.max(0, p.adjust)));
   if (h.status === "running" && logical >= h.duration) {
     h.status = "finished";
     h.finishedAt = t;
     h.participants.forEach((p) => p.final = p.dnf ? null : p.base + p.adjust);
     rank(h);
-    const prizes = h.participants.map((p) => {
-      const team = data.teams[p.teamId], amount = racePrize(p.rank, p.dnf);
+    const prizes = h.participants.flatMap((p) => {
+      const team = data.teams[p.teamId], amount = racePrize(p.rank, p.dnf, p.withdrawn);
+      if (!amount) return [];
       refund(team, amount, "race_prize");
-      return { team_id: team.id, action: "race_prize", amount, balance: team.wallet };
+      return [{ team_id: team.id, action: "race_prize", amount, balance: team.wallet }];
     });
-    h.prizes = Object.fromEntries(h.participants.map((p) => [p.teamId, racePrize(p.rank, p.dnf)]));
+    h.prizes = Object.fromEntries(h.participants.map((p) => [p.teamId, racePrize(p.rank, p.dnf, p.withdrawn)]));
     if (h.type === "final") data.awards.champion = h.participants.find((p) => !p.dnf)?.teamId || null;
     const improved = Object.values(data.teams).map((team) => ({ teamId: team.id, comparison: compareTests(team.tests[0], team.tests[1]) })).filter((x) => x.comparison?.changed.length && x.comparison.percent > 0).sort((a, b) => b.comparison.percent - a.comparison.percent);
     if (improved.length) data.awards.evolution = improved[0].teamId;
@@ -192,12 +198,12 @@ function mutator(room, data, action, p, user) {
     }
   }
   if (action === "join-room") {
-    if (!["LOBBY", "TEAM_BUILD", "TESTING"].includes(data.phase)) err("ROOM_CLOSED", "Esta sala n\xE3o aceita novas equipes.");
-    const existing = Object.values(data.teams).find((t) => t.owner === user);
+    const existing = Object.values(data.teams).find((t) => t.owner === user && !t.removed);
     if (existing) {
-      if (existing.removed) err("TEAM_REMOVED", "Sua escuderia foi excluída desta sala pelo professor.");
       return { data, result: { teamId: existing.id, roomId: room.id, reconnected: true }, audit, finances };
     }
+    if (Object.values(data.teams).some((t) => t.owner === user && t.removed && !t.left)) err("TEAM_REMOVED", "Sua escuderia foi excluída desta sala pelo professor.");
+    if (!["LOBBY", "TEAM_BUILD", "TESTING"].includes(data.phase)) err("ROOM_CLOSED", "Esta sala n\xE3o aceita novas equipes.");
     if (Object.values(data.teams).filter((t) => !t.removed).length >= data.maxPlayers) err("ROOM_FULL", "A sala est\xE1 cheia.");
     const name = clean(p.teamName, 20);
     if (name.length < 3 || banned.test(name)) err("INVALID_NAME", "Escolha um nome fict\xEDcio de 3 a 20 caracteres.");
@@ -379,6 +385,13 @@ function mutator(room, data, action, p, user) {
     data.phase = "QUALIFYING";
     event(data, "heats.built", { round: nextRound, count: heats.length, manual: Array.isArray(p.assignments) });
     result = { heats };
+  } else if (action === "race-speed") {
+    requireTeacher(room, user);
+    const speed = Number(p.speed);
+    if (!RACE_SPEEDS.includes(speed)) err("INVALID_RACE_SPEED", "Escolha 1×, 2×, 4×, 6× ou 8×.");
+    data.raceSpeed = speed;
+    event(data, "race.speed_changed", { speed });
+    result = { speed };
   } else if (action === "race-action") {
     requireTeacher(room, user);
     const h = data.heats.find((x) => x.id === p.heatId);
@@ -406,6 +419,7 @@ function mutator(room, data, action, p, user) {
       }
       h.duration = Math.max(...h.participants.map((x) => x.base));
       h.clockDuration = h.duration;
+      h.speed = data.raceSpeed || 4;
       scheduleIncidents(h);
       h.startAt = now() + 3e3;
       h.status = "countdown";
@@ -449,7 +463,9 @@ function mutator(room, data, action, p, user) {
       result = { status: h.status };
     } else if (p.command === "repeat") {
       if (h.status !== "cancelled" || data.heats.some((x) => x.repeatOf === h.id)) err("INVALID_RACE_STATE", "Esta bateria n\xE3o pode ser repetida.");
-      const repeated = { id: uid(), type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: "created", participants: withRoster(data, h.participants.map((x) => x.teamId)), startAt: null, pauseTotal: 0, pausedAt: null, checkpoint: 0, event: null, history: [], cooldowns: {}, duration: 0, repeatOf: h.id, freeSupplies: h.hadStarted };
+      const repeatIds = h.participants.map((x) => x.teamId).filter((id) => data.teams[id] && !data.teams[id].removed);
+      if (!repeatIds.length) err("TEAM_NOT_FOUND", "Nenhuma equipe permanece nesta bateria.");
+      const repeated = { id: uid(), type: h.type, round: h.round || 1, laps: h.laps || 3, number: h.number, status: "created", participants: withRoster(data, repeatIds), startAt: null, pauseTotal: 0, pausedAt: null, checkpoint: 0, event: null, history: [], cooldowns: {}, duration: 0, repeatOf: h.id, freeSupplies: h.hadStarted };
       data.heats.push(repeated);
       event(data, "heat.repeated", { oldHeatId: h.id, newHeatId: repeated.id });
       result = { heat: repeated };
@@ -457,7 +473,7 @@ function mutator(room, data, action, p, user) {
   } else if (action === "sync-race") {
     const h = data.heats.find((x) => x.id === p.heatId);
     if (!h) err("HEAT_NOT_FOUND", "Bateria inv\xE1lida.");
-    finances = advanceRace(h, data, p.activeTeamIds || []);
+    finances = advanceRace(h, data);
     result = { heatId: h.id, status: h.status };
   } else if (action === "submit-qte") {
     const t = getTeam(data, user), h = data.heats.find((x) => x.event?.id === p.eventId), e = h?.event;
@@ -493,6 +509,7 @@ function mutator(room, data, action, p, user) {
     const qualifiers = data.heats.filter((h2) => h2.type === "qualifier" && h2.status === "finished");
     const standings = new Map();
     for (const heat of qualifiers) for (const participant of heat.participants) {
+      if (data.teams[participant.teamId]?.removed) continue;
       const entry = standings.get(participant.teamId) || { total: 0, count: 0 };
       entry.total += participant.dnf ? 1e6 : participant.final;
       entry.count++;
@@ -521,8 +538,37 @@ function mutator(room, data, action, p, user) {
     t.ready = false;
     event(data, "team.removed", { teamId: t.id, name: t.name });
     result = { teamId: t.id, removed: true };
+  } else if (action === "leave-room") {
+    const t = getTeam(data, user);
+    t.removed = true;
+    t.left = true;
+    t.ready = false;
+    for (const h of data.heats) {
+      const participant = h.participants.find((x) => x.teamId === t.id);
+      if (!participant || ["finished", "cancelled"].includes(h.status)) continue;
+      if (h.status === "created") {
+        h.participants = h.participants.filter((x) => x.teamId !== t.id);
+        if (!h.participants.length) h.status = "finished";
+      } else {
+        participant.dnf = true;
+        participant.withdrawn = true;
+        participant.dnfProgress = h.duration ? Math.min(1, Math.max(0, (now() - h.startAt - h.pauseTotal) * (h.speed || 1) / h.duration)) : 0;
+        if (h.event?.status === "open" && [h.event.front, h.event.behind].includes(t.id)) h.event.inputs[t.id] = { valid: false, final: true, reason: "left", at: now() };
+        if (h.status === "qte_paused" && h.event?.inputs[h.event.front]?.final && h.event?.inputs[h.event.behind]?.final) resolveQte(h);
+      }
+      h.history.push({ type: "team_left", teamId: t.id, at: new Date().toISOString() });
+    }
+    event(data, "team.left", { teamId: t.id, name: t.name });
+    result = { teamId: t.id, left: true };
+  } else if (action === "delete-room") {
+    requireTeacher(room, user);
+    if (data.deleted) err("ROOM_NOT_FOUND", "Sala não encontrada.");
+    data.deleted = true;
+    data.phase = "CLOSED";
+    event(data, "room.deleted");
+    result = { roomId: room.id, deleted: true };
   } else err("INVALID_ACTION", "A\xE7\xE3o n\xE3o reconhecida.");
-  for (const key of ["kind", "itemId", "slot", "partId", "quantity", "marketPhase", "phase", "heatId", "command", "eventId", "teamId"]) if (p[key] !== void 0) audit[key] = p[key];
+  for (const key of ["kind", "itemId", "slot", "partId", "quantity", "marketPhase", "phase", "heatId", "command", "eventId", "teamId", "speed"]) if (p[key] !== void 0) audit[key] = p[key];
   if (action === "run-test") audit.testNumber = result.test?.number;
   if (action === "join-room") audit.teamId = result.teamId;
   return { data, result, audit, finances };
