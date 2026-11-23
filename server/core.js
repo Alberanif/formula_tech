@@ -282,7 +282,8 @@ function mutator(room, data, action, p, user) {
     }
     if (p.evaluation !== void 0) {
       if (t.tests.length < 2) err("ANALYSIS_INCOMPLETE", "Fa\xE7a o segundo teste.");
-      if (!["improved", "partially", "not_improved", "unchanged"].includes(p.evaluation) || !/[0-9]/.test(clean(p.evidence, 240))) err("INVALID_ANALYSIS", "Escolha o resultado e cite uma m\xE9trica num\xE9rica.");
+      if (!["improved", "partially", "not_improved", "unchanged"].includes(p.evaluation)) err("INVALID_ANALYSIS", "Escolha o resultado da compara\xE7\xE3o.");
+      if (!/[0-9]/.test(clean(p.evidence, 240))) err("INVALID_ANALYSIS", "Digite um n\xFAmero do relat\xF3rio no campo da conclus\xE3o (ex.: 8,2 s).");
       a.evaluation = p.evaluation;
       a.evidence = clean(p.evidence, 240);
     }

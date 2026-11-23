@@ -19,7 +19,8 @@ test('teacher room survives polling and test conclusion unlocks after the second
   };
   const saved = new Map([['ft_room', roomId]]);
   const storage = { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value), removeItem: key => saved.delete(key) };
-  const app = { innerHTML: '', addEventListener() {} };
+  const listeners = {};
+  const app = { innerHTML: '', addEventListener(type, handler) { listeners[type] = handler; } };
   const document = { getElementById: () => app, body: { classList: { toggle() {} } }, addEventListener() {}, activeElement: null };
   const source = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8')
     .replace(/^import .*;\r?\n/gm, '')
@@ -83,10 +84,19 @@ test('teacher room survives polling and test conclusion unlocks after the second
   context.testClient.setStudent({ id: 'student-id', role: 'student' }, publicState(room, 'student-id'));
   context.testClient.ui.screen = 'tests';
   context.testClient.render();
-  assert.match(app.innerHTML, /Segundo teste concluído. Registre a conclusão com uma métrica/);
+  assert.match(app.innerHTML, /Segundo teste concluído. Escolha o resultado e digite um número do relatório/);
   const conclusion = app.innerHTML.split('<form id="conclusion-form">')[1].split('</form>')[0];
   assert.doesNotMatch(conclusion, /disabled/);
   assert.match(conclusion, /Sem diferença/);
+
+  listeners.change({ target: { dataset: {}, name: 'evaluation', value: 'unchanged', closest: () => ({ id: 'conclusion-form' }) } });
+  listeners.input?.({ target: { dataset: {}, name: 'evidence', value: 'Setor 2: 8,2 s nos dois testes', closest: () => ({ id: 'conclusion-form' }) } });
+  document.activeElement = { matches: () => false };
+  responseBody = { ok: true, data: publicState(room, 'student-id') };
+  await context.testClient.load();
+  const draftConclusion = app.innerHTML.split('<form id="conclusion-form">')[1].split('</form>')[0];
+  assert.match(draftConclusion, /<option value="unchanged" selected>/);
+  assert.match(draftConclusion, /value="Setor 2: 8,2 s nos dois testes"/);
 
   context.testClient.setStudent({ id: 'student-id', role: 'student' }, publicState(room, 'student-id'));
   responseBody = { ok: false, code: 'TEAM_REMOVED', message: 'Sua escuderia foi excluída desta sala pelo professor.' };

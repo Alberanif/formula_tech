@@ -22,6 +22,8 @@ test('student can repeat an unchanged project, submit a numeric conclusion and b
   assert.deepEqual(second.comparison.changed, []);
   assert.equal(second.comparison.delta, 0);
 
+  assert.throws(() => mutator(room, data, 'submit-analysis', { evaluation: '', evidence: 'Setor 2: 8,2 s' }, student), error => error.message === 'Escolha o resultado da comparação.');
+  assert.throws(() => mutator(room, data, 'submit-analysis', { evaluation: 'unchanged', evidence: 'Tempos iguais' }, student), error => error.message.includes('Digite um número do relatório'));
   mutator(room, data, 'submit-analysis', { evaluation: 'unchanged', evidence: 'Setor 2: 8,2 s nos dois testes' }, student);
   assert.deepEqual(checklist(team), []);
   assert.equal(mutator(room, data, 'set-ready', { ready: true }, student).result.ready, true);
